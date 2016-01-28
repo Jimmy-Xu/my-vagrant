@@ -1,1 +1,3 @@
 ceph/ceph-ansible
+ceph/.vagrant
+libvirt/.vagrant
