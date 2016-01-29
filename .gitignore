@@ -5,3 +5,4 @@ ceph/_image
 ceph/*.deb
 
 libvirt/.vagrant
+.vagrant
