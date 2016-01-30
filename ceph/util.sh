@@ -42,6 +42,10 @@ IMAGE_CACHE="_image"
 VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 
 MEMORY="512"
+MON_VMS="1"
+OSD_VMS="1"
+RGW_VMS="1"
+CLIENT_VMS="1"
 
 ##################################
 ##            provider           #
@@ -116,9 +120,6 @@ function prepare_ceph_ansible(){
     quit "${CEPH_ANSIBLE_DIR}/${COMMON_CONFIG} not found"
   fi
 
-  if [[ ! -s ${CEPH_ANSIBLE_DIR}/site.yml ]] || [[ ! -s ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml ]] ;then
-    quit "${CEPH_ANSIBLE_DIR}/site.yml or ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml not exist"
-  fi
 }
 
 function ensure_dependency(){
@@ -178,7 +179,15 @@ function ensure_dependency(){
   elif [ ${PROVIDER} == "libvirt" ];then
     echo "-----------------------------"
     echo "[for libvirt] ensure qemu installed"
-    sudo apt-get install -y qemu libvirt-bin
+    which qemu-system-x86_64 libvirtd >/dev/null 2>&1
+    if [ $? -ne 0 ];then
+      sudo apt-get install -y qemu libvirt-bin
+    fi
+    grep 'unix_sock_rw_perms = "0770"' /etc/libvirt/libvirtd.conf >/dev/null 2>&1
+    if [ $? -eq 0 ];then
+      sudo sed -i 's/unix_sock_rw_perms = "0770"/unix_sock_rw_perms = "0777"/' /etc/libvirt/libvirtd.conf
+      sudo service libvirt-bin restart
+    fi
 
     echo "----------------------------------------"
     echo "[for libvirt] ensure ruby 2.x installed"
@@ -216,7 +225,7 @@ function ensure_dependency(){
 
     echo "-----------------------------"
     echo "[for libvirt] ensure ruby-libvirt"
-    sudo gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+    gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
     if [ $? -ne 0 ];then
       sudo apt-get install -y libxslt-dev libxml2-dev libvirt-dev zlib1g-dev
       sudo gem install ruby-libvirt -v '0.5.2'
@@ -332,6 +341,19 @@ function prepare_image(){
   echo "------------------------------------------------------------------------------"
   echo "modify memory to ${MEMORY} in '${CEPH_ANSIBLE_DIR}/vagrant_variables.yml'"
   sed -i "s/^memory: .*/memory: ${MEMORY}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
+
+  #check site.yml and vagrant_variables.yml
+  if [[ ! -s ${CEPH_ANSIBLE_DIR}/site.yml ]] || [[ ! -s ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml ]] ;then
+    quit "${CEPH_ANSIBLE_DIR}/site.yml or ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml not exist"
+  fi
+
+  #set vms
+  echo "------------------------------------------------------------------------------"
+  echo "set vms number"
+  sed -i "s/^mon_vms: .*/mon_vms: ${MON_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
+  sed -i "s/^osd_vms: .*/osd_vms: ${OSD_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
+  sed -i "s/^rgw_vms: .*/rgw_vms: ${RGW_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
+  sed -i "s/^client_vms: .*/client_vms: ${CLIENT_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
 
 
   echo "============================================"
