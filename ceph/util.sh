@@ -43,7 +43,7 @@ VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.d
 
 MEMORY="512"
 MON_VMS="1"
-OSD_VMS="1"
+OSD_VMS="3"
 RGW_VMS="1"
 CLIENT_VMS="1"
 
@@ -226,6 +226,9 @@ function ensure_dependency(){
     echo "-----------------------------"
     echo "[for libvirt] ensure ruby-libvirt"
     gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+    if [ $? -ne 0 ];then
+      sudo gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+    fi
     if [ $? -ne 0 ];then
       sudo apt-get install -y libxslt-dev libxml2-dev libvirt-dev zlib1g-dev
       sudo gem install ruby-libvirt -v '0.5.2'
