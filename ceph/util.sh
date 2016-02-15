@@ -34,6 +34,8 @@
 
 ################################################################
 CEPH_ANSIBLE_DIR="ceph-ansible"
+CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
+CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
 SITE_TMPL="site.yml.sample"
 COMMON_CONFIG="roles/ceph-common/defaults/main.yml"
 #SITE_TMPL="test.yml"
@@ -99,10 +101,11 @@ function quit(){
 function prepare_ceph_ansible(){
   if [ -d ${CEPH_ANSIBLE_DIR} ];then
     echo "pull ${CEPH_ANSIBLE_DIR}"
-    cd ${CEPH_ANSIBLE_DIR} && git pull && cd -
+    cd ${CEPH_ANSIBLE_DIR} && git pull && git checkout ${CEPH_ANSIBLE_COMMIT} -f && cd -
   else
     echo "clone ${CEPH_ANSIBLE_DIR}"
-    git clone https://github.com/ceph/ceph-ansible.git
+    git clone ${CEPH_ANSIBLE_REPO}
+    git checkout ${CEPH_ANSIBLE_COMMIT} -f
   fi
 
   if [ -s ${CEPH_ANSIBLE_DIR}/${SITE_TMPL} ];then
