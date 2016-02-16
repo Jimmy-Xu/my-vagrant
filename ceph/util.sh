@@ -33,7 +33,8 @@
 # virsh undefine <vm_name>
 
 ################################################################
-CEPH_ANSIBLE_DIR="ceph-ansible"
+WORK_DIR=$(cd `dirname $0`; pwd)
+CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
 CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
 SITE_TMPL="site.yml.sample"
