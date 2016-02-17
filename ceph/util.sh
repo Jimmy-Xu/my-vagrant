@@ -37,18 +37,17 @@ WORK_DIR=$(cd `dirname $0`; pwd)
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
 CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
-SITE_TMPL="site.yml.sample"
 COMMON_CONFIG="roles/ceph-common/defaults/main.yml"
-#SITE_TMPL="test.yml"
 
-IMAGE_CACHE="_image"
-VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
-
-MEMORY="512"
+SITE_TMPL="site.yml.sample"
 MON_VMS="1"
 OSD_VMS="3"
 RGW_VMS="1"
 CLIENT_VMS="1"
+MEMORY="512"
+
+IMAGE_CACHE="_image"
+VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 
 ##################################
 ##            provider           #
@@ -68,8 +67,8 @@ LV_FEDORA22_URL="https://download.fedoraproject.org/pub/fedora/linux/releases/22
 LV_FEDORA22_IMG="Fedora-Cloud-Base-Vagrant-22-20150521.x86_64.vagrant-libvirt.box"
 #------------------------------------------------
 LV_CENTOS7BOX_NAME="libvirt/centos/7"
-LV_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1509.01/providers/libvirt.box"
-LV_CENTOS7BOX_IMG="CentOS-7-Vagrant-1509-x86_64-01.LibVirt.box"
+LV_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1601.01/providers/libvirt.box"
+LV_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.LibVirt.box"
 
 
 ##################################
@@ -89,8 +88,8 @@ VB_UBUNTU1404BOX_URL="https://atlas.hashicorp.com/ubuntu/boxes/trusty64/versions
 VB_UBUNTU1404BOX_IMG="trusty-server-cloudimg-amd64-vagrant-disk1.box"
 #------------------------------------------------
 VB_CENTOS7BOX_NAME="virtualbox/centos/7"
-VB_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1509.01/providers/virtualbox.box"
-VB_CENTOS7BOX_IMG="CentOS-7-Vagrant-1509-x86_64-01.box"
+VB_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1601.01/providers/virtualbox.box"
+VB_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.VirtualBox.box"
 
 
 ################################################################

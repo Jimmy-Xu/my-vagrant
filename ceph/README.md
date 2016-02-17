@@ -333,3 +333,28 @@ Solution:
 //eth1 can not get ip
 $ dhclient eth1
 ```
+
+### FAQ 3: some tasks failed
+
+Error
+
+```
+$ ./util.sh run
+  ...
+  PLAY RECAP *********************************************************************
+  mon0                       : ok=78   changed=5    unreachable=0    failed=1
+  osd0                       : ok=48   changed=0    unreachable=0    failed=0
+  osd1                       : ok=47   changed=0    unreachable=0    failed=0
+  osd2                       : ok=47   changed=0    unreachable=0    failed=0
+  rgw0                       : ok=35   changed=1    unreachable=0    failed=1
+```
+
+Solution:
+
+```
+//try one more time
+$ ./util.sh run
+or
+$ cd ceph-ansible
+$ vagrant up
+```
