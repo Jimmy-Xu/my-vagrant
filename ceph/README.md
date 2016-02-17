@@ -1,4 +1,4 @@
-# Start ceph cluster with vagrant + libvirt + qemu(kvm) + centos7
+# Start ceph cluster with vagrant + libvirt + qemu(kvm) + centos7(guest os)
 ## Manage cluster
 ### start all vms
 
@@ -11,6 +11,26 @@ $ ./util.sh run
   osd1                       : ok=42   changed=11   unreachable=0    failed=0   
   osd2                       : ok=42   changed=11   unreachable=0    failed=0   
   rgw0                       : ok=33   changed=12   unreachable=0    failed=0
+
+//to start an existed env
+$ cd ceph-ansible
+$ vagrant up
+  Bringing machine 'client0' up with 'libvirt' provider...
+  Bringing machine 'rgw0' up with 'libvirt' provider...
+  Bringing machine 'mon0' up with 'libvirt' provider...
+  Bringing machine 'osd0' up with 'libvirt' provider...
+  Bringing machine 'osd1' up with 'libvirt' provider...
+  Bringing machine 'osd2' up with 'libvirt' provider...
+  ...
+$ vagrant status
+  Current machine states:
+  client0                   running (libvirt)
+  rgw0                      running (libvirt)
+  mon0                      running (libvirt)
+  osd0                      running (libvirt)
+  osd1                      running (libvirt)
+  osd2                      running (libvirt)
+  ...
 ```
 
 ### list all vms
