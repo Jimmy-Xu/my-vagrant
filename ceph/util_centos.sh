@@ -47,13 +47,16 @@ CLIENT_VMS="1"
 MEMORY="512"
 
 IMAGE_CACHE="_image"
-VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
+VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
+VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
+VIRTUALBOX_PKG="VirtualBox-5.0-5.0.14_105127_el7-1.x86_64.rpm"
+VIRTUALBOX_URL="http://download.virtualbox.org/virtualbox/5.0.14/${VIRTUALBOX_PKG}"
 
 ##################################
 ##            provider           #
 ##################################
-PROVIDER="libvirt"
-#PROVIDER="virtualbox"
+#PROVIDER="libvirt"
+PROVIDER="virtualbox"
 
 
 ##################################
@@ -74,9 +77,9 @@ LV_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.LibVirt.box"
 ##################################
 ##           virtualbox          #
 ##################################
-VB_DISTROS="centos/7"
+#VB_DISTROS="centos/7"
 #VB_DISTROS="fedora/22-cloud-base"
-#VB_DISTROS="ubuntu/trusty64"
+VB_DISTROS="ubuntu/trusty64"
 
 #------------------------------------------------
 VB_FEDORA22_NAME="virtualbox/fedora/22-cloud-base"
@@ -133,8 +136,8 @@ function ensure_dependency(){
   echo "[for common] ensure vagrant installed"
   which vagrant >/dev/null 2>&1
   if [ $? -ne 0 ];then
-    wget -c ${VAGRANT_URL}
-    sudo dpkg -i vagrant_1.8.1_x86_64.deb
+    wget -c ${VAGRANT_URL} -O ${WORK_DIR}/${VAGRANT_PKG}
+    sudo rpm -Uvh ${WORK_DIR}/${VAGRANT_PKG}
     which vagrant >/dev/null 2>&1
     if [ $? -ne 0 ];then
       quit "[for common] install vagrant failed"
@@ -155,13 +158,13 @@ function ensure_dependency(){
 
   echo "----------------------------------------"
   echo "[for common] ensure ansible 2.x installed"
-  ansible --version | grep "^ansible 2." >/dev/null 2>&1
+  ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
   if [ $? -ne 0 ];then
-    sudo apt-get install software-properties-common
-    sudo apt-add-repository ppa:ansible/ansible
-    sudo apt-get update
-    sudo apt-get install -y ansible
-    ansible --version | grep "^ansible 2." >/dev/null 2>&1
+    sudo yum install -y asciidoc rpm-build python2-devel
+    git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
+    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+
+    ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
       quit "install ansible failed"
     else
@@ -176,44 +179,50 @@ function ensure_dependency(){
   # for virtualbox
     echo "-----------------------------"
     echo "[for virtualbox] ensure virtualbox5 installed"
-    sudo apt-get install -y linux-headers-$(uname -r)
-    sudo apt-get install -y virtualbox-5.0
+    sudo yum install -y qt qt-x11
+    sudo yum install -y kernel-devel-`uname -r` gcc
+    wget -c ${VIRTUALBOX_URL} -O ${WORK_DIR}/${VIRTUALBOX_PKG}
+    sudo rpm -Uvh ${WORK_DIR}/${VIRTUALBOX_PKG}
+    # add current user to vboxusers
+    sudo usermod -G vboxusers $USER
+
 
   elif [ ${PROVIDER} == "libvirt" ];then
     echo "-----------------------------"
     echo "[for libvirt] ensure qemu installed"
     which qemu-system-x86_64 libvirtd >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      sudo apt-get install -y qemu libvirt-bin
+      sudo yum install -y qemu libvirt
     fi
-    grep 'unix_sock_rw_perms = "0770"' /etc/libvirt/libvirtd.conf >/dev/null 2>&1
+    grep '^unix_sock_rw_perms = "0770"' /etc/libvirt/libvirtd.conf >/dev/null 2>&1
     if [ $? -eq 0 ];then
       sudo sed -i 's/unix_sock_rw_perms = "0770"/unix_sock_rw_perms = "0777"/' /etc/libvirt/libvirtd.conf
-      sudo service libvirt-bin restart
+      sudo service libvirtd restart
     fi
 
     echo "----------------------------------------"
-    echo "[for libvirt] ensure ruby 2.x installed"
-    ruby --version | grep "ruby 2." >/dev/null 2>&1
+    echo "[for libvirt] ensure ruby 2.2.x installed"
+    ruby --version | grep "ruby 2.2" >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      sudo apt-get install software-properties-common
-      sudo apt-add-repository ppa:brightbox/ruby-ng
-      sudo apt-get update
-      sudo apt-get install -y ruby2.2 ruby2.2-dev
+      sudo yum install -y ruby ruby-devel
+      #required
+      yum install gcc-c++ patch readline readline-devel zlib zlib-devel
+      yum install libyaml-devel libffi-devel openssl-devel make
+      yum install bzip2 autoconf automake libtool bison iconv-devel sqlite-devel
+      #install rvm
+      curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+      curl -L get.rvm.io | bash -s stable
+      source ~/.rvm/scripts/rvm
+      rvm reload
+      #Verify Dependencies
+      rvm requirements run
+      rvm install 2.2.4
+      #Setup Default Ruby Version
+      rvm use 2.2.4 --default
 
-      sudo dpkg-divert --add --rename --divert /usr/bin/ruby.divert /usr/bin/ruby
-      sudo dpkg-divert --add --rename --divert /usr/bin/gem.divert /usr/bin/gem
-
-      sudo update-alternatives --install /usr/bin/ruby ruby /usr/bin/ruby2.2 0
-      sudo update-alternatives --install /usr/bin/gem gem /usr/bin/gem2.2 0
-
-      sudo apt-get install -y ruby-switch
-
-      sudo ruby-switch --set ruby2.2
-
-      ruby --version | grep "ruby 2." >/dev/null 2>&1
+      ruby --version | grep "ruby 2.2" >/dev/null 2>&1
       if [ $? -ne 0 ];then
-        quit "[for libvirt] install ruby 2.x failed"
+        quit "[for libvirt] install ruby 2.2.x failed"
       else
         echo "[for libvirt] ruby2.x install successfully"
       fi
@@ -230,12 +239,12 @@ function ensure_dependency(){
     echo "[for libvirt] ensure ruby-libvirt"
     gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      sudo gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+      gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
     fi
     if [ $? -ne 0 ];then
-      sudo apt-get install -y libxslt-dev libxml2-dev libvirt-dev zlib1g-dev
-      sudo gem install ruby-libvirt -v '0.5.2'
-      sudo gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+      sudo yum install -y libxslt-devel libxml2-devel libvirt-devel libguestfs-tools-c
+      gem install --source=https://ruby.taobao.org/ ruby-libvirt -v '0.5.2'
+      gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
       if [ $? -ne 0 ];then
         echo "[for libvirt] ruby-libvirt 0.5.2 installed failed"
       else
@@ -287,7 +296,7 @@ function prepare_image(){
 
   # centos/7 (libvirt/virtualbox) https://atlas.hashicorp.com/centos/boxes/7
   # ubuntu/trusty64 (virtualbox)  https://atlas.hashicorp.com/ubuntu/boxes/trusty64
-  mkdir -p ${IMAGE_CACHE}
+  mkdir -p ${WORK_DIR}/${IMAGE_CACHE}
   case ${PROVIDER} in
     virtualbox)
       CUR_DISTROS=${VB_DISTROS}
@@ -394,24 +403,25 @@ function vagrant_up(){
   case "${PROVIDER}" in
     libvirt)
       sudo service vboxdrv stop
-      sudo service libvirt-bin start
+      sudo service libvirtd start
       ;;
     virtualbox)
-      sudo service libvirt-bin stop
+      sudo service libvirtd stop
       sudo service vboxdrv start
       ;;
   esac
 
   cd ${CEPH_ANSIBLE_DIR}
 
-  vagrant up --no-provision --provider=${PROVIDER}
+  vagrant up --debug --no-provision --provider=${PROVIDER}
   sleep 1
   #VAGRANT_LOG=info vagrant provision
   vagrant provision
 }
 
 function destroy_all(){
-  cd ${CEPH_ANSIBLE_DIR} && vagrant destroy && rm .vagrant -rf
+  cd ${CEPH_ANSIBLE_DIR} && vagrant destroy
+  rm .vagrant -rf && rm *.vdi -rf && cd -
   case "${PROVIDER}" in
     libvirt)
       virsh list --all| grep -v Name | awk '{print $2}' | xargs -I vm_name virsh destroy vm_name

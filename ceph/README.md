@@ -358,3 +358,86 @@ or
 $ cd ceph-ansible
 $ vagrant up
 ```
+
+### FAQ 4: vagrant up failed with libvirt
+
+Error
+
+```
+$ vagrant up --no-provision --provider=libvirt
+...
+Error while connecting to libvirt: Error making a connection to libvirt URI qemu:///system
+```
+
+Solution:
+
+```
+
+```
+
+### FAQ 5: "Bad argument setup" error when run `sudo /sbin/rcvboxdrv setup`
+
+Error
+
+```
+$ VBoxManage --version
+  WARNING: The vboxdrv kernel module is not loaded. Either there is no module
+         available for the current kernel (2.6.38-ARCH) or it failed to
+         load. Please recompile the kernel module and install it by
+
+           sudo /sbin/rcvboxdrv setup
+
+         You will not be able to start VMs until this problem is fixed.
+$ sudo /sbin/rcvboxdrv setup
+  Bad argument setup
+```
+
+Solution:
+
+```
+$ sudo mv /sbin/rcvboxdrv /sbin/rcvboxdrv.bak
+$ sudo ln -s /usr/lib/virtualbox/vboxdrv.sh /sbin/rcvboxdrv
+$ sudo /sbin/rcvboxdrv setup
+  Stopping VirtualBox kernel modules                         [  OK  ]
+  Recompiling VirtualBox kernel modules                      [  OK  ]
+  Starting VirtualBox kernel modules                         [  OK  ]
+```
+
+### FAQ 6: can not ssh to guest
+
+Error
+
+```
+$ vagrant up
+  ...
+  Timed out while waiting for the machine to boot. This means that
+  Vagrant was unable to communicate with the guest machine within
+  the configured ("config.vm.boot_timeout" value) time period.
+  ...
+```
+
+Solution
+
+```
+$ vagrant ssh-config
+  Host client0
+    HostName 127.0.0.1
+    User vagrant
+    Port 2222
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    IdentityFile "/home/xjimmy/.vagrant.d/insecure_private_key"
+    IdentitiesOnly yes
+    LogLevel FATAL
+
+  The provider for this Vagrant-managed machine is reporting that it
+  is not yet ready for SSH. Depending on your provider this can carry
+  different meanings. Make sure your machine is created and running and
+  try again. Additionally, check the output of `vagrant status` to verify
+  that the machine is in the state that you expect. If you continue to
+  get this error message, please view the documentation for the provider
+  you're using.
+
+
+```
