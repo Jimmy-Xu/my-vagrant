@@ -403,41 +403,21 @@ $ sudo /sbin/rcvboxdrv setup
   Starting VirtualBox kernel modules                         [  OK  ]
 ```
 
-### FAQ 6: can not ssh to guest
+### FAQ 6: ansible issue
 
 Error
 
 ```
 $ vagrant up
   ...
-  Timed out while waiting for the machine to boot. This means that
-  Vagrant was unable to communicate with the guest machine within
-  the configured ("config.vm.boot_timeout" value) time period.
+  An exception occurred during task execution. To see the full traceback, use -vvv. The error was: TypeError: set_fs_attributes_if_different() takes exactly 3 arguments (4 given)
+  fatal: [mon0 -> localhost]: FAILED! => {"changed": false, "failed": true, "parsed": false}
   ...
 ```
 
 Solution
 
 ```
-$ vagrant ssh-config
-  Host client0
-    HostName 127.0.0.1
-    User vagrant
-    Port 2222
-    UserKnownHostsFile /dev/null
-    StrictHostKeyChecking no
-    PasswordAuthentication no
-    IdentityFile "/home/xjimmy/.vagrant.d/insecure_private_key"
-    IdentitiesOnly yes
-    LogLevel FATAL
-
-  The provider for this Vagrant-managed machine is reporting that it
-  is not yet ready for SSH. Depending on your provider this can carry
-  different meanings. Make sure your machine is created and running and
-  try again. Additionally, check the output of `vagrant status` to verify
-  that the machine is in the state that you expect. If you continue to
-  get this error message, please view the documentation for the provider
-  you're using.
-
-
+//updating the submodules the issue was solved.
+$ cd ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm
 ```

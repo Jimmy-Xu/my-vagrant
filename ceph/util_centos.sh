@@ -162,7 +162,7 @@ function ensure_dependency(){
   if [ $? -ne 0 ];then
     sudo yum install -y asciidoc rpm-build python2-devel
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
-    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
     ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
@@ -399,6 +399,28 @@ function prepare_image(){
 }
 
 function vagrant_up(){
+
+cat <<EOF
+
+==========================================
+Ansible        : $(ansible --version | head -n1 | grep -o "[0-9]\.[0-9]\.[0-9]\.[0-9]")
+------------------------------------------
+Ruby           : $(ruby --version | grep -o "[0-9]\.[0-9]\.[0-9]")
+Germ           : $(gem list | grep ruby-libvirt)
+------------------------------------------
+Vagrant        : $(vagrant --version | grep -o "[0-9]\.[0-9]\.[0-9]")
+Vagrant plugins: $(vagrant plugin list|grep vagrant-libvirt)
+------------------------------------------
+VirtualBox     : $(vboxmanage --version | grep -o "[0-9]\.[0-9]\.[0-9]")
+------------------------------------------
+Libvirt        : $(libvirtd --version | grep -o "[0-9]\.[0-9]\.[0-9]")
+Qemu           : $(qemu-system-x86_64 --version | grep -o "[0-9]\.[0-9]")
+==========================================
+
+EOF
+
+echo "press any key to continue..."
+read -n 1
 
   case "${PROVIDER}" in
     libvirt)
