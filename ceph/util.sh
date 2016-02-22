@@ -34,6 +34,9 @@
 
 ################################################################
 WORK_DIR=$(cd `dirname $0`; pwd)
+TMP_DIR="_tmp"
+IMAGE_CACHE="_image"
+
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
 CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
@@ -46,8 +49,8 @@ RGW_VMS="1"
 CLIENT_VMS="1"
 MEMORY="512"
 
-IMAGE_CACHE="_image"
-VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
+VAGRANT_PKG="vagrant_1.8.1_x86_64.deb"
+VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
 
 ##################################
 ##            provider           #
@@ -133,8 +136,8 @@ function ensure_dependency(){
   echo "[for common] ensure vagrant installed"
   which vagrant >/dev/null 2>&1
   if [ $? -ne 0 ];then
-    wget -c ${VAGRANT_URL}
-    sudo dpkg -i vagrant_1.8.1_x86_64.deb
+    wget -c ${VAGRANT_URL} -O ${WORK_DIR}/${TMP_DIR}/${VAGRANT_PKG}
+    sudo dpkg -i ${WORK_DIR}/${TMP_DIR}/${VAGRANT_PKG}
     which vagrant >/dev/null 2>&1
     if [ $? -ne 0 ];then
       quit "[for common] install vagrant failed"
@@ -287,7 +290,7 @@ function prepare_image(){
 
   # centos/7 (libvirt/virtualbox) https://atlas.hashicorp.com/centos/boxes/7
   # ubuntu/trusty64 (virtualbox)  https://atlas.hashicorp.com/ubuntu/boxes/trusty64
-  mkdir -p ${IMAGE_CACHE}
+  mkdir -p ${WORK_DIR}/${IMAGE_CACHE}
   case ${PROVIDER} in
     virtualbox)
       CUR_DISTROS=${VB_DISTROS}

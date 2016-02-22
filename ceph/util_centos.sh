@@ -39,7 +39,7 @@ IMAGE_CACHE="_image"
 
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
-CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
+CEPH_ANSIBLE_COMMIT="63d7824c9c1eec4e15c210c08fa89cba9c881e5d"
 COMMON_CONFIG="roles/ceph-common/defaults/main.yml"
 
 SITE_TMPL="site.yml.sample"
@@ -47,7 +47,8 @@ MON_VMS="1"
 OSD_VMS="3"
 RGW_VMS="1"
 CLIENT_VMS="1"
-MEMORY="512"
+MEMORY="1024"
+#ETH="eht1"
 
 VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
 VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
@@ -106,7 +107,7 @@ function quit(){
 function prepare_ceph_ansible(){
   if [ -d ${CEPH_ANSIBLE_DIR} ];then
     echo "pull ${CEPH_ANSIBLE_DIR}"
-    cd ${CEPH_ANSIBLE_DIR} && git pull && git checkout ${CEPH_ANSIBLE_COMMIT} -f && cd -
+    #cd ${CEPH_ANSIBLE_DIR} && git pull && git checkout ${CEPH_ANSIBLE_COMMIT} -f && cd -
   else
     echo "clone ${CEPH_ANSIBLE_DIR}"
     git clone ${CEPH_ANSIBLE_REPO}
@@ -394,6 +395,8 @@ function prepare_image(){
   sed -i "s/^rgw_vms: .*/rgw_vms: ${RGW_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
   sed -i "s/^client_vms: .*/client_vms: ${CLIENT_VMS}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
 
+  # #set eth
+  # sed -i "s/^eth: .*/eth: ${ETH}/" ${CEPH_ANSIBLE_DIR}/vagrant_variables.yml
 
   echo "============================================"
   echo " current image info "
