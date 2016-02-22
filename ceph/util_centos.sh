@@ -34,6 +34,9 @@
 
 ################################################################
 WORK_DIR=$(cd `dirname $0`; pwd)
+TMP_DIR="_tmp"
+IMAGE_CACHE="_image"
+
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
 CEPH_ANSIBLE_COMMIT="3ba68d38362e60577fe7ab6cf9798c16e4132343"
@@ -46,7 +49,6 @@ RGW_VMS="1"
 CLIENT_VMS="1"
 MEMORY="512"
 
-IMAGE_CACHE="_image"
 VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
 VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
 VIRTUALBOX_PKG="VirtualBox-5.0-5.0.14_105127_el7-1.x86_64.rpm"
@@ -55,8 +57,8 @@ VIRTUALBOX_URL="http://download.virtualbox.org/virtualbox/5.0.14/${VIRTUALBOX_PK
 ##################################
 ##            provider           #
 ##################################
-#PROVIDER="libvirt"
-PROVIDER="virtualbox"
+PROVIDER="libvirt"
+#PROVIDER="virtualbox"
 
 
 ##################################
@@ -77,9 +79,9 @@ LV_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.LibVirt.box"
 ##################################
 ##           virtualbox          #
 ##################################
-#VB_DISTROS="centos/7"
+VB_DISTROS="centos/7"
 #VB_DISTROS="fedora/22-cloud-base"
-VB_DISTROS="ubuntu/trusty64"
+#VB_DISTROS="ubuntu/trusty64"
 
 #------------------------------------------------
 VB_FEDORA22_NAME="virtualbox/fedora/22-cloud-base"
@@ -136,8 +138,8 @@ function ensure_dependency(){
   echo "[for common] ensure vagrant installed"
   which vagrant >/dev/null 2>&1
   if [ $? -ne 0 ];then
-    wget -c ${VAGRANT_URL} -O ${WORK_DIR}/${VAGRANT_PKG}
-    sudo rpm -Uvh ${WORK_DIR}/${VAGRANT_PKG}
+    wget -c ${VAGRANT_URL} -O ${WORK_DIR}/${TMP_DIR}/${VAGRANT_PKG}
+    sudo rpm -Uvh ${WORK_DIR}/${TMP_DIR}/${VAGRANT_PKG}
     which vagrant >/dev/null 2>&1
     if [ $? -ne 0 ];then
       quit "[for common] install vagrant failed"
@@ -181,8 +183,8 @@ function ensure_dependency(){
     echo "[for virtualbox] ensure virtualbox5 installed"
     sudo yum install -y qt qt-x11
     sudo yum install -y kernel-devel-`uname -r` gcc
-    wget -c ${VIRTUALBOX_URL} -O ${WORK_DIR}/${VIRTUALBOX_PKG}
-    sudo rpm -Uvh ${WORK_DIR}/${VIRTUALBOX_PKG}
+    wget -c ${VIRTUALBOX_URL} -O ${WORK_DIR}/${TMP_DIR}/${VIRTUALBOX_PKG}
+    sudo rpm -Uvh ${WORK_DIR}/${TMP_DIR}/${VIRTUALBOX_PKG}
     # add current user to vboxusers
     sudo usermod -aG vboxusers $USER
 
@@ -202,6 +204,16 @@ function ensure_dependency(){
 
     echo "----------------------------------------"
     echo "[for libvirt] ensure ruby 2.2.x installed"
+    case $USER in
+      root) if [ -s /etc/profile.d/rvm.sh ];then
+              source /etc/profile.d/rvm.sh
+            fi
+            ;;
+      *)    if [ -s ~/.rvm/scripts/rvm ];then
+              source ~/.rvm/scripts/rvm
+            fi
+            ;;
+    esac
     ruby --version | grep "ruby 2.2" >/dev/null 2>&1
     if [ $? -ne 0 ];then
       sudo yum install -y ruby ruby-devel
@@ -209,10 +221,22 @@ function ensure_dependency(){
       yum install gcc-c++ patch readline readline-devel zlib zlib-devel
       yum install libyaml-devel libffi-devel openssl-devel make
       yum install bzip2 autoconf automake libtool bison iconv-devel sqlite-devel
+
       #install rvm
-      curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-      curl -L get.rvm.io | bash -s stable
-      source ~/.rvm/scripts/rvm
+      sudo gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+      #curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+
+      #curl -L get.rvm.io | bash -s stable
+      wget -c -O ${WORK_DIR}/${TMP_DIR}/rvm-installer get.rvm.io
+      chmod +x ${WORK_DIR}/${TMP_DIR}/rvm-installer
+      ${WORK_DIR}/${TMP_DIR}/rvm-installer stable
+
+      case $USER in
+        root) source /etc/profile.d/rvm.sh
+              ;;
+        *)    source ~/.rvm/scripts/rvm
+              ;;
+      esac
       rvm reload
       #Verify Dependencies
       rvm requirements run
@@ -425,11 +449,11 @@ read -n 1
   case "${PROVIDER}" in
     libvirt)
       sudo service vboxdrv stop
-      sudo service libvirtd start
+      sudo service libvirtd restart
       ;;
     virtualbox)
       sudo service libvirtd stop
-      sudo service vboxdrv start
+      sudo service vboxdrv restart
       ;;
   esac
 
@@ -469,7 +493,7 @@ EOF
 }
 
 ## main #################################################
-
+mkdir -p ${WORK_DIR}/${IMAGE_CACHE} ${WORK_DIR}/${TMP_DIR}
 case "$1" in
   run)
     prepare_ceph_ansible
