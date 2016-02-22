@@ -3,7 +3,7 @@
 ### start all vms
 
 ```shell
-$ ./util.sh run
+$ sudo ./util.sh run
   ...
   PLAY RECAP *********************************************************************
   mon0                       : ok=73   changed=17   unreachable=0    failed=0   
@@ -14,7 +14,7 @@ $ ./util.sh run
 
 //to start an existed env
 $ cd ceph-ansible
-$ vagrant up
+$ sudo vagrant up
   Bringing machine 'client0' up with 'libvirt' provider...
   Bringing machine 'rgw0' up with 'libvirt' provider...
   Bringing machine 'mon0' up with 'libvirt' provider...
@@ -22,7 +22,7 @@ $ vagrant up
   Bringing machine 'osd1' up with 'libvirt' provider...
   Bringing machine 'osd2' up with 'libvirt' provider...
   ...
-$ vagrant status
+$ sudo vagrant status
   Current machine states:
   client0                   running (libvirt)
   rgw0                      running (libvirt)
@@ -36,7 +36,7 @@ $ vagrant status
 ### list all vms
 
 ```
-$ ./util.sh list
+$ sudo ./util.sh list
   Current machine states:
   client0                   running (libvirt)
   rgw0                      running (libvirt)
@@ -51,7 +51,7 @@ $ ./util.sh list
 
 ```shell
 $ cd ceph-ansible
-$ vagrant ssh osd0
+$ sudo vagrant ssh osd0
   Last login: Fri Jan 29 13:05:28 2016 from 192.168.121.1
   [vagrant@ceph-osd0 ~]$ sudo yum install net-tools
   [vagrant@ceph-osd0 ~]$ ip addr | grep "inet.*eth."
@@ -79,7 +79,7 @@ $ sudo netstat -tnopl
 
 ```shell
 $ cd ceph-ansible
-$ vagrant ssh mon0
+$ sudo vagrant ssh mon0
 [vagrant@ceph-mon0 ~]$ sudo yum install -y net-tools
 $ sudo netstat -tnopl
   Active Internet connections (only servers)
@@ -99,14 +99,14 @@ $ sudo netstat -tnopl
 //enter mon0
 $ mkdir -p ~/ceph_conf
 $ cd ceph-ansible
-$ vagrant ssh mon0
+$ sudo vagrant ssh mon0
   [vagrant@ceph-mon0 ~]$ sudo scp /etc/ceph/ceph.client.admin.keyring /etc/ceph/ceph.conf xjimmy@192.168.1.137:~/ceph_conf/
 
 //change mod of ceph.conf on host
 $ chmod 604 ~/ceph_conf/ceph.conf
 
 //enter client0
-$ vagrant ssh client0
+$ sudo vagrant ssh client0
   [vagrant@ceph-mon0 ~]$ sudo yum install -y ceph-common
   [vagrant@ceph-mon0 ~]$ sudo scp xjimmy@192.168.1.137:~/ceph_conf/* /etc/ceph
   [vagrant@ceph-mon0 ~]$ sudo ceph -s
@@ -125,7 +125,7 @@ $ vagrant ssh client0
 ### delete all vms
 
 ```shell
-$ ./util.sh destroy
+$ sudo ./util.sh destroy
 ```
 
 ## Usage
@@ -339,7 +339,7 @@ $ dhclient eth1
 Error
 
 ```
-$ ./util.sh run
+$ sudo ./util.sh run
   ...
   PLAY RECAP *********************************************************************
   mon0                       : ok=78   changed=5    unreachable=0    failed=1
@@ -353,10 +353,10 @@ Solution:
 
 ```
 //try one more time
-$ ./util.sh run
+$ sudo ./util.sh run
 or
 $ cd ceph-ansible
-$ vagrant up
+$ sudo vagrant up
 ```
 
 ### FAQ 4: vagrant up failed with libvirt
@@ -364,7 +364,7 @@ $ vagrant up
 Error
 
 ```
-$ vagrant up --no-provision --provider=libvirt
+$ sudo vagrant up --no-provision --provider=libvirt
 ...
 Error while connecting to libvirt: Error making a connection to libvirt URI qemu:///system
 ```
@@ -408,7 +408,7 @@ $ sudo /sbin/rcvboxdrv setup
 Error
 
 ```
-$ vagrant up
+$ sudo vagrant up
   ...
   An exception occurred during task execution. To see the full traceback, use -vvv. The error was: TypeError: set_fs_attributes_if_different() takes exactly 3 arguments (4 given)
   fatal: [mon0 -> localhost]: FAILED! => {"changed": false, "failed": true, "parsed": false}

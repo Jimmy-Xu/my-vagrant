@@ -184,7 +184,7 @@ function ensure_dependency(){
     wget -c ${VIRTUALBOX_URL} -O ${WORK_DIR}/${VIRTUALBOX_PKG}
     sudo rpm -Uvh ${WORK_DIR}/${VIRTUALBOX_PKG}
     # add current user to vboxusers
-    sudo usermod -G vboxusers $USER
+    sudo usermod -aG vboxusers $USER
 
 
   elif [ ${PROVIDER} == "libvirt" ];then
