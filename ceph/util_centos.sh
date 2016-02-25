@@ -164,6 +164,7 @@ function ensure_dependency(){
   ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
   if [ $? -ne 0 ];then
     sudo yum install -y asciidoc rpm-build python2-devel
+    sudo yum install -y PyYAML python-httplib2 python-jinja2 python-keyczar python-paramiko sshpass
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
     cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
@@ -204,7 +205,7 @@ function ensure_dependency(){
     fi
 
     echo "----------------------------------------"
-    echo "[for libvirt] ensure ruby 2.2.x installed"
+    echo "[for libvirt] ensure ruby 2.0.x installed"
     case $USER in
       root) if [ -s /etc/profile.d/rvm.sh ];then
               source /etc/profile.d/rvm.sh
@@ -215,45 +216,45 @@ function ensure_dependency(){
             fi
             ;;
     esac
-    ruby --version | grep "ruby 2.2" >/dev/null 2>&1
+    ruby --version | grep "ruby 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
       sudo yum install -y ruby ruby-devel
-      #required
-      yum install gcc-c++ patch readline readline-devel zlib zlib-devel
-      yum install libyaml-devel libffi-devel openssl-devel make
-      yum install bzip2 autoconf automake libtool bison iconv-devel sqlite-devel
+      # #required
+      # yum install gcc-c++ patch readline readline-devel zlib zlib-devel
+      # yum install libyaml-devel libffi-devel openssl-devel make
+      # yum install bzip2 autoconf automake libtool bison iconv-devel sqlite-devel
+      #
+      # #install rvm
+      # sudo gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+      # #curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+      #
+      # #curl -L get.rvm.io | bash -s stable
+      # wget -c -O ${WORK_DIR}/${TMP_DIR}/rvm-installer get.rvm.io
+      # chmod +x ${WORK_DIR}/${TMP_DIR}/rvm-installer
+      # ${WORK_DIR}/${TMP_DIR}/rvm-installer stable
+      #
+      # case $USER in
+      #   root) source /etc/profile.d/rvm.sh
+      #         ;;
+      #   *)    source ~/.rvm/scripts/rvm
+      #         ;;
+      # esac
+      # rvm reload
+      # #Verify Dependencies
+      # rvm requirements run
+      # rvm install 2.2.4
+      # #Setup Default Ruby Version
+      # rvm use 2.2.4 --default
 
-      #install rvm
-      sudo gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-      #curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-
-      #curl -L get.rvm.io | bash -s stable
-      wget -c -O ${WORK_DIR}/${TMP_DIR}/rvm-installer get.rvm.io
-      chmod +x ${WORK_DIR}/${TMP_DIR}/rvm-installer
-      ${WORK_DIR}/${TMP_DIR}/rvm-installer stable
-
-      case $USER in
-        root) source /etc/profile.d/rvm.sh
-              ;;
-        *)    source ~/.rvm/scripts/rvm
-              ;;
-      esac
-      rvm reload
-      #Verify Dependencies
-      rvm requirements run
-      rvm install 2.2.4
-      #Setup Default Ruby Version
-      rvm use 2.2.4 --default
-
-      ruby --version | grep "ruby 2.2" >/dev/null 2>&1
+      ruby --version | grep "ruby 2.0" >/dev/null 2>&1
       if [ $? -ne 0 ];then
-        quit "[for libvirt] install ruby 2.2.x failed"
+        quit "[for libvirt] install ruby 2.0.x failed"
       else
-        echo "[for libvirt] ruby2.x install successfully"
+        echo "[for libvirt] ruby2.0.x install successfully"
       fi
     else
       ruby --version
-      echo "[for libvirt] ruby2.x alreay installed"
+      echo "[for libvirt] ruby2.0.x alreay installed"
     fi
 
     echo "[for libvirt] use taobao gem source"
