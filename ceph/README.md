@@ -421,3 +421,42 @@ Solution
 //updating the submodules the issue was solved.
 $ cd ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm
 ```
+
+### FAQ 7: "vagrant ssh" can not connect to guestos
+
+Error
+```
+$ sudo vagrant ssh-config
+  ...
+  The provider for this Vagrant-managed machine is reporting that it
+    is not yet ready for SSH. Depending on your provider this can carry
+    different meanings. Make sure your machine is created and running and
+    try again. Additionally, check the output of `vagrant status` to verify
+    that the machine is in the state that you expect. If you continue to
+    get this error message, please view the documentation for the provider
+    you're using.
+    ...
+```
+
+Solution
+
+>use "virsh console" enter the guest os  
+>default account for ssh login:  `vagrant:vagrant`  
+
+```
+$ sudo virsh list
+  Id    Name                           State
+  ----------------------------------------------------
+  2     ceph-ansible_mon0              running
+  3     ceph-ansible_osd2              running
+  4     ceph-ansible_rgw0              running
+  5     ceph-ansible_osd1              running
+  6     ceph-ansible_client0           running
+  7     ceph-ansible_osd0              running
+$ sudo virsh console 6
+  Connected to domain ceph-ansible_client0
+  ceph-client0 login: vagrant
+  Password:
+  [vagrant@ceph-client0 ~]$ ip addr show eth0
+  [vagrant@ceph-client0 ~]$ dhclient eth0
+```
