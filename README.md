@@ -1,2 +1,3 @@
 - **libvirt**: [vagrant + libvirt(KVM)](libvirt/README.md)
 - **ceph**: [Vagrant + Ceph Ansible](ceph/README.md)
+- **imaged**: [vagrant + libvirt(KVM) + ansible](imaged/README.md)

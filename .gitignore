@@ -7,5 +7,7 @@ ceph/*.deb
 ceph/*.rpm
 ceph/ansible
 
+imaged/.vagrant
+
 libvirt/.vagrant
 .vagrant
