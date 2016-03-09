@@ -80,10 +80,30 @@
     - file: path=/root/.ssh/deploy.pem owner=root group=root mode=0400
     - git: repo=git@github.com:getdvm/devops.git dest=/root/devops version=master accept_hostkey=yes key_file=/root/.ssh/deploy.pem
       environment: "{{ proxy_env }}"
+    # git config
+    - name: change git config
+      command: git config core.filemode false
+      args:
+        chdir: /root/devops/
+    #set shell filemode
+    - shell: ls /root/devops/hypernetes-single-node/*.sh
+      register: sh_files
+    - debug: msg={{ sh_files.stdout_lines }}
+    - file: path={{ item }} owner=root group=root mode=755
+      with_items: sh_files.stdout_lines
+
+    ###### add run.sh ######
+    - name: add run.sh
+      copy: src=tool/run.sh dest=/root/run.sh
+    - file: path=/root/run.sh  owner=root group=root mode=0755
 
     ###### base setup ######
     - name: run 1_base_setup.sh
-      shell: (sh ./1_base_setup.sh /root/h8s_deploy_env) && touch /root/1_base_setup.ok
+      shell: /root/run.sh /root/devops/hypernetes-single-node 1_base_setup /root/h8s_deploy_env
       args:
-        chdir: /root/devops/hypernetes-single-node/
         creates: /root/1_base_setup.ok
+
+    - name: run 2_install_openstack.sh
+      shell: /root/run.sh /root/devops/hypernetes-single-node 2_install_openstack /root/h8s_deploy_env
+      args:
+        creates: /root/2_install_openstack.ok
