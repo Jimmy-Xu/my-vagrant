@@ -1,6 +1,5 @@
 Run hypernetes in a VM
 ====================================
-
 >vagrant + libvirt + ansible + kvm
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
@@ -22,15 +21,11 @@ Run hypernetes in a VM
 
 # dependence
 
-|    package     |           version        |
-|      ---       |           ---            |
-| Ansible        | 2.0.0.2                  |
-| Ruby           | 2.0.0                    |
-| Germ           | ruby-libvirt (0.5.2)     |
-| Vagrant        | 1.8.1                    |
-| Vagrant plugins| vagrant-libvirt (0.0.32) |
-| Libvirt        | 1.2.1                    |
-| Qemu           | 2.0                      |
+- vagrant
+- libvirt
+- qemu
+- ansible
+- github.com/getdvm/devops
 
 # usage
 

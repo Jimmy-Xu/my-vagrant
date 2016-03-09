@@ -91,7 +91,14 @@ function quit(){
   exit 1
 }
 
-
+function ensure_deploy_key(){
+  if [ -s ${WORK_DIR}/github/deploy.pem ];then
+    echo "github/deploy.pem is ready"
+  else
+    echo "please add a privte keypair in github/deploy.pem which has permission to pull privte repo github.com/getdvm/devops"
+    exit 1
+  fi
+}
 
 function ensure_dependency(){
 
@@ -393,6 +400,7 @@ EOF
 mkdir -p ${WORK_DIR}/${IMAGE_CACHE} ${WORK_DIR}/${TMP_DIR}
 case "$1" in
   run)
+    ensure_deploy_key
     ensure_dependency
     prepare_image
     vagrant_up
