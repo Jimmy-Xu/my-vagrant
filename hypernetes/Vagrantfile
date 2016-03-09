@@ -61,6 +61,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Libvirt
   config.vm.provider :libvirt do |lv|
     lv.memory = 2048
+    lv.cpus = 2
+    #lv.cpu_mode = "host-model"
+    # Enable KVM nested virtualization
+    lv.nested = true
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
