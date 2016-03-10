@@ -1,0 +1,172 @@
+---
+###### install common package ######
+#add 163 yum repo
+- name: backup CentOS-Base.repo
+  command: mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+  args:
+    creates: /etc/yum.repos.d/CentOS-Base.repo.backup
+
+- name: download CentOS-Base.repo from 163
+  copy:
+    src: etc/yum.repos.d/CentOS7-Base-163.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo
+
+# add epel yum repo
+- name: install epel-release
+  yum:
+    name: epel-release
+    state: present
+
+- name: enable epel
+  shell: sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/epel.repo
+
+# install common package
+- name: install common package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - wget
+    - net-tools
+    - python-pip
+    - git
+
+###### start shadowsocks sslcoal service(socks5 proxy) ######
+- name: install shadowsocks
+  pip:
+    name: shadowsocks
+    version: 2.8.2
+
+- file:
+    path: /etc/shadowsocks
+    state: directory
+    mode: 0755
+
+- name: copy 'etc_shadowsocks_client.json' to '/etc/shadowsocks/client.json'
+  template:
+    src: etc/shadowsocks/client.json
+    dest: /etc/shadowsocks/client.json
+  tags:
+   - config-shadowsocks
+
+- name: start sslocal service
+  service:
+    name: sslocal
+    state: started
+    enabled: yes
+
+- name: install unit file for sslocal service
+  copy:
+    src: usr/lib/systemd/system/sslocal.service
+    dest: /usr/lib/systemd/system/sslocal.service
+  notify:
+    - reload-systemd
+    - restart-sslocal
+
+
+###### start privoxy service(socks5 proxy -> http proxy) ######
+- name: install privoxy
+  yum:
+    name: privoxy
+    state: present
+
+- name: start privoxy service
+  service:
+    name: privoxy
+    state: started
+    enabled: yes
+
+- name: config privoxy
+  copy:
+    src: etc/privoxy/config
+    dest: /etc/privoxy/config
+  notify:
+    - restart-privoxy
+
+###### init ######
+- name: generate h8s_deploy_env
+  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth0'\nIF_IP='{{ ansible_eth0.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
+  args:
+    creates: /root/h8s_deploy_env
+
+# set ssh
+- file: path=/root/.ssh state=directory mode=0755
+- name: set ssh keypair
+  copy:
+    src: ssh/{{ item }}
+    dest: /root/.ssh/
+  with_items:
+    - id_rsa
+    - id_rsa.pub
+    - config
+- file:
+    path: /root/.ssh/id_rsa
+    owner: root
+    group: root
+    mode: 0400
+
+###### clone devops ######
+# this is a private git repo, need add deploy key(example: deploy-for-dev-redadonly) in github with public keypair with "ssh/id_rsa.pub"
+- name: check /root/devops
+  shell: ls /root/devops/* | wc -l
+  register: devops_downloaded
+- debug: msg={{ devops_downloaded.stdout }}
+
+- name: set deploy key for github
+  copy:
+    src: github/deploy.pem
+    dest: /root/.ssh/deploy.pem
+- file:
+    path: /root/.ssh/deploy.pem
+    owner: root
+    group: root
+    mode: 0400
+
+- git: repo=git@github.com:getdvm/devops.git dest=/root/devops version=master accept_hostkey=yes key_file=/root/.ssh/deploy.pem
+  environment: "{{ proxy_env }}"
+  when: devops_downloaded.stdout == "0"
+
+# git config
+- name: change git config
+  command: git config core.filemode false
+  args:
+    chdir: /root/devops/
+
+- name: add -x filemode to shell script
+  shell: ls /root/devops/hypernetes-single-node/*.sh
+  register: sh_files
+- debug: msg={{ sh_files.stdout_lines }}
+
+- file: path={{ item }} owner=root group=root mode=755
+  with_items: sh_files.stdout_lines
+
+###### add run.sh ######
+# run.sh will generate log when execute script, and crate a .ok file in /root
+# - name: add run.sh
+#   copy: src=tool/run.sh dest=/root/run.sh
+# - file: path=/root/run.sh  owner=root group=root mode=0755
+
+#########################################
+#       start execute shell script      #
+#########################################
+###### base setup ######
+# - name: run 1_base_setup.sh
+#   shell: /root/run.sh /root/devops/hypernetes-single-node 1_base_setup /root/h8s_deploy_env
+#   args:
+#     creates: /root/1_base_setup.ok
+# ###### install openstack ######
+# - name: run 2_install_openstack.sh
+#   shell: /root/run.sh /root/devops/hypernetes-single-node 2_install_openstack /root/h8s_deploy_env
+#   args:
+#     creates: /root/2_install_openstack.ok
+# ###### install ceph ######
+# - name: run 3_install_ceph.sh
+#   shell: /root/run.sh /root/devops/hypernetes-single-node 3_install_ceph /root/h8s_deploy_env
+#   environment: "{{ proxy_env }}"
+#   args:
+#     creates: /root/3_install_ceph.ok
+# ###### install ceph ######
+# - name: run 4_config_cinder.sh
+#   shell: /root/run.sh /root/devops/hypernetes-single-node 4_config_cinder /root/h8s_deploy_env
+#   args:
+#     creates: /root/4_config_cinder.ok

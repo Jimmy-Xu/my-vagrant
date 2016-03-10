@@ -92,10 +92,10 @@ function quit(){
 }
 
 function ensure_deploy_key(){
-  if [ -s ${WORK_DIR}/github/deploy.pem ];then
+  if [ -s ${WORK_DIR}/roles/common/files/github/deploy.pem ];then
     echo "github/deploy.pem is ready"
   else
-    echo "please add a privte keypair in github/deploy.pem which has permission to pull privte repo github.com/getdvm/devops"
+    echo "please add a privte keypair in '${WORK_DIR}/roles/common/files/github/deploy.pem' which has permission to pull privte repo github.com/getdvm/devops"
     exit 1
   fi
 }
@@ -390,6 +390,7 @@ function show_usage(){
   usage: ./util_centos.sh <command>
   <command>:
     run
+    quickrun
     list
     halt
     destroy
@@ -403,6 +404,9 @@ case "$1" in
     ensure_deploy_key
     ensure_dependency
     prepare_image
+    vagrant_up
+    ;;
+  quickrun)
     vagrant_up
     ;;
   list)

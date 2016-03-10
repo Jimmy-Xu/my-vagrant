@@ -1,5 +1,5 @@
 {
-  "server"  : "x.x.x.x",
+  "server"  : "{{shadowsocks_server_ip}}",
   "server_port": 8388,
   "local_port": 1080,
   "password": "aaa123aa",

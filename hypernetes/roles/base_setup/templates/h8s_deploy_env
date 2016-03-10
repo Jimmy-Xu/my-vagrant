@@ -1,0 +1,6 @@
+HOSTNAME='{{ ansible_hostname }}'
+IF_NAME='{{ if_name }}'
+IF_IP='{{ ansible_eth0.ipv4.address }}'
+KEYSTONE_ADMIN_PW='aaa123aa'
+KEYSTONE_DEMO_PW='aaa123aa'
+RBD_SECRET_UUID='9e67541c-637b-476b-b80d-2a58250a3d48'
