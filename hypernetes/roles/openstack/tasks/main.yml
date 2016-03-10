@@ -1,0 +1,83 @@
+---
+- file:
+    path: /root/deps
+    state: directory
+    mode: 0755
+
+# install rdo-release.rpm
+- name: copy rdo-release.rpm
+  copy:
+    src: rpm/rdo-release.rpm
+    dest: /root/deps/rdo-release.rpm
+- name: install rdo-release.rpm
+  yum:
+    name: /root/deps/rdo-release.rpm
+    state: present
+
+#install openstack-packstack
+- name: install openstack-packstack
+  yum:
+    name: openstack-packstack
+    state: present
+
+#generate my_answer.txt
+- name: generate my_answer.txt
+  template:
+    src: my_answer.txt
+    dest: /root/deps/my_answer.txt
+  tags:
+   - generate-my_answer.txt
+
+#run install openstack
+- name: run packstack
+  shell: packstack --answer-file=/root/deps/my_answer.txt && touch /root/packstack.ok
+  args:
+    creates: /root/packstack.ok
+
+#install oslo.i18n(fix "ImportError: cannot import name _lazy")
+- name: install oslo.i18n
+  pip:
+    name: oslo.i18n
+    version: 3.4.0
+
+#create ext_network
+- name: add -x filemode to /root/keystonerc_admin
+  file:
+    path: /root/keystonerc_admin
+    mode: 0700
+- name: check ext_network
+  shell: . /root/keystonerc_admin && neutron net-list | grep 'br\-ex' | wc -l
+  register: ext_network
+- debug: msg={{ ext_network.stdout }}
+
+- name: create ext_network
+  shell: . /root/keystonerc_admin && neutron net-create --router:external br-ex
+  when: ext_network.stdout == "0"
+
+#config neutron-server
+- name: config neutron-server
+  copy:
+    src: etc/neutron.conf
+    dest: /etc/neutron.conf
+
+#install openstack-neutron-openvswitch and iptables
+- name: install openstack-neutron-openvswitch and iptables
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - openstack-neutron-openvswitch.noarch
+    - iptables-services
+
+
+- name: start iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: yes
+
+- name: start openvswitch service
+  service:
+    name: openvswitch
+    state: started
+    enabled: yes

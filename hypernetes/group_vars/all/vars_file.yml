@@ -1,0 +1,7 @@
+h8s_hostname: h8s-single
+keystone_admin_pw: aaa123aa
+keystone_demo_pw: aaa123aa
+rbd_secret_uuid: aaa123aa
+
+#for user os_network module(avoid 'shade is required for this module')
+ansible_python_interpreter: "/bin/env python"
