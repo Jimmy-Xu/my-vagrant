@@ -5,3 +5,8 @@ rbd_secret_uuid: aaa123aa
 
 #for user os_network module(avoid 'shade is required for this module')
 ansible_python_interpreter: "/bin/env python"
+
+go_install_dir: /usr/local
+go_root: /usr/local/go
+go_path: /root/gopath
+go_version: 1.5.3

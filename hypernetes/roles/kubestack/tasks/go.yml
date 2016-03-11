@@ -1,0 +1,57 @@
+---
+
+- name: remove golang
+  yum:
+    name: golang
+    state: removed
+
+- name: check golang binary
+  shell: ls "/root/go{{ go_version }}.linux-amd64.tar.gz" | wc -l
+  register: golang_tga
+- debug: msg={{ golang_tga.stdout }}
+- name: wget go binary
+  get_url:
+    url: "http://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: /root
+    mode: 0644
+  when: golang_tga.stdout == "0"
+
+- name: unarchive go
+  shell: tar -C {{ go_install_dir }} -xzf "go{{ go_version }}.linux-amd64.tar.gz"
+  args:
+    chdir: /root
+
+- name: create Go tools directory
+  file:
+    path: "{{ go_path }}"
+    state: directory
+
+- name: add Go ROOT to environment variable
+  shell: sed -i '/export GOROOT=/d' {{ ansible_env.HOME }}/.profile ; echo "export GOROOT={{ go_install_dir }}/go" >> {{ ansible_env.HOME }}/.profile
+
+- name: add Go PATH to environment variable
+  shell: sed -i '/export GOPATH=/d' {{ ansible_env.HOME }}/.profile ; echo "export GOPATH={{ go_path }}" >> {{ ansible_env.HOME }}/.profile
+
+- name: add goroot and gopath to environment variable
+  shell: sed -i '/export PATH=/d' {{ ansible_env.HOME }}/.profile ; echo "export PATH=$PATH:{{ go_install_dir }}/go/bin:{{ go_path }}/bin" >> {{ ansible_env.HOME }}/.profile
+
+- name: install git
+  yum: name=git state=latest
+
+- name: install mercurial
+  yum: name=mercurial state=latest
+
+- name: go get gocode
+  shell: . $HOME/.profile && go get github.com/nsf/gocode
+  environment: "{{ proxy_env }}"
+  args:
+    creates: "{{ go_path }}/src/github.com/nsf/gocode"
+
+# - name: go get godef
+#   shell: . $HOME/.profile && go get code.google.com/p/rog-go/exp/cmd/godef
+
+- name: go get godep
+  shell: . $HOME/.profile && go get github.com/tools/godep
+  environment: "{{ proxy_env }}"
+  args:
+    creates: "{{ go_path }}/src/github.com/tools/godep"

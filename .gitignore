@@ -9,7 +9,7 @@ ceph/ansible
 
 imaged/.vagrant
 
-hypernetes/github/deploy.pem
+hypernetes/roles/common/files/github/deploy.pem
 
 libvirt/.vagrant
 .vagrant

@@ -11,6 +11,6 @@
     # - openstack
     # - ceph
     # - cinder
-    - hyper
-    # - kubestack
+    # - hyper
+    - kubestack
     # - kubenetes
