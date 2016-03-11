@@ -30,9 +30,9 @@
 
 #run install openstack
 - name: run packstack
-  shell: packstack --answer-file=/root/deps/my_answer.txt && touch /root/packstack.ok
+  shell: packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
   args:
-    creates: /root/packstack.ok
+    creates: /root/deps/packstack.ok
 
 #install oslo.i18n(fix "ImportError: cannot import name _lazy")
 - name: install oslo.i18n

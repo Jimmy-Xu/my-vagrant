@@ -9,8 +9,8 @@
     # - common
     # - base_setup
     # - openstack
-    - ceph
-    # - cinder
+    # - ceph
+    - cinder
     # - hyper
     # - kubestack
     # - kubenetes
