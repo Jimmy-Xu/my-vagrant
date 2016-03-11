@@ -407,6 +407,7 @@ case "$1" in
     vagrant_up
     ;;
   quickrun)
+    ensure_deploy_key
     vagrant_up
     ;;
   list)
