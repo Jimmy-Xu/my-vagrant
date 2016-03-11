@@ -8,8 +8,8 @@
   roles:
     # - common
     # - base_setup
-    - openstack
-    # - ceph
+    # - openstack
+    - ceph
     # - cinder
     # - hyper
     # - kubestack
