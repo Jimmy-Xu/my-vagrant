@@ -1,0 +1,9 @@
+Kernel=/var/lib/hyper/kernel
+Initrd=/var/lib/hyper/hyper-initrd.img
+Bios=/var/lib/hyper/bios-qboot.bin
+Cbfs=/var/lib/hyper/cbfs-qboot.rom
+StorageDriver={{ hyper_storage_driver }}
+DisableIptables={{ hyper_disable_iptables }}
+Hypervisor={{ hyper_hypervisor }}
+http_proxy=http://127.0.0.1:8118
+https_proxy=http://127.0.0.1:8118

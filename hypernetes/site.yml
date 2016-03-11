@@ -10,7 +10,7 @@
     # - base_setup
     # - openstack
     # - ceph
-    - cinder
-    # - hyper
+    # - cinder
+    - hyper
     # - kubestack
     # - kubenetes

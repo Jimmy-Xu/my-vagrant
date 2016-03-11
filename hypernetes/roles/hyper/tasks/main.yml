@@ -1,0 +1,43 @@
+---
+
+- name: create download dir for hyper rpm
+  file:
+    path: "{{ rpm_hyper }}"
+    state: directory
+    mode: 0755
+- name: download hyper rpm
+  get_url:
+    url: "http://s3.amazonaws.com/hyper-install/{{ item }}"
+    dest: "{{ rpm_hyper }}"
+  with_items:
+    - hyper-0.5-1.el7.centos.x86_64.rpm
+    - hyperstart-0.5-1.el7.centos.x86_64.rpm
+    - qemu-hyper-2.4.1-2.el7.centos.x86_64.rpm
+
+- name: install hyper
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ rpm_hyper }}/hyper-0.5-1.el7.centos.x86_64.rpm"
+    - "{{ rpm_hyper }}/hyperstart-0.5-1.el7.centos.x86_64.rpm"
+    - "{{ rpm_hyper }}/qemu-hyper-2.4.1-2.el7.centos.x86_64.rpm"
+
+- name: install libvirt
+  yum:
+    name: libvirt
+    state: present
+
+- name: config hyper
+  template:
+    src: etc/hyper/config
+    dest: /etc/hyper/config
+
+- name: start libvirtd and hyperd service
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - libvirtd
+    - hyperd

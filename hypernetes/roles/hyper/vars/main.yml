@@ -1,0 +1,6 @@
+rpm_hyper: /root/deps/rpm-hyper
+
+hyper_storage_driver: overlay
+hyper_disable_iptables: true
+hyper_hypervisor: libvirt
+hyper_port: 9999
