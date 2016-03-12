@@ -1,0 +1,25 @@
+---
+- name: restart-etcd
+  service:
+    name: etcd
+    state: restarted
+
+- name: restart-kubestack
+  service:
+    name: kubestack
+    state: restarted
+
+- name: restart-kube-apiserver
+  service:
+    name: kube-apiserver
+    state: restarted
+
+- name: restart-kube-scheduler
+  service:
+    name: kube-scheduler
+    state: restarted
+
+- name: restart-etcd
+  service:
+    name: kube-controller-manager
+    state: restarted

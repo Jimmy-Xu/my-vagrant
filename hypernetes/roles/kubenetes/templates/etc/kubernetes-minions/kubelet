@@ -1,0 +1,11 @@
+# The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+# Replace this as your own ip
+KUBELET_ADDRESS="--address={{ ansible_eth0.ipv4.address }}"
+# The port for the info server to serve on
+# KUBELET_PORT="--port=10250"
+# You may leave this blank to use the actual hostname
+KUBELET_HOSTNAME=""
+# location of the api-server
+KUBELET_API_SERVER="--api_servers=http://{{ ansible_eth0.ipv4.address }}:8080"
+# Add your own!
+KUBELET_ARGS="--container-runtime=hyper --network-provider=openstack --cinder-config=/etc/kubernetes/cinder.conf --disable-hyper-internal-service=true"

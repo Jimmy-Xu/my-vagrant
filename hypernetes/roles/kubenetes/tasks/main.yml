@@ -1,0 +1,149 @@
+---
+
+- name: install dependency package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - kubernetes
+    - etcd
+    - iptables
+
+- name: set DOCKER_NETWORK_OPTIONS in /etc/sysconfig/docker-network
+  lineinfile:
+    dest: /etc/sysconfig/docker-network
+    regexp: '^DOCKER_NETWORK_OPTIONS='
+    line: DOCKER_NETWORK_OPTIONS="{{ docker_network_options }}"
+    state: present
+    create: True
+
+# get k8s-bin
+- name: download k8s-bin
+  get_url:
+    url: "{{ k8s_bin_url }}"
+    dest: /root/deps/k8s-bin.tar.gz
+- name: unarchive k8s-bin
+  unarchive:
+    src: /root/deps/k8s-bin.tar.gz
+    dest: /root
+    copy: no
+
+# install k8s-bin
+- name: install k8s-bin to /usr/bin
+  shell: cp -rf /root/k8s-bin/{{ item }} /usr/bin/{{ item }}
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kubectl
+    - kubelet
+    - kubemark
+    - kube-proxy
+    - kube-scheduler
+    - kube-version-change
+
+###### Configure Kubernetes master ######
+- name:  create directory for kubernetes
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /var/log/kubernetes
+    - /var/lib/kubernetes
+    - /var/run/kubernetes
+
+# create service account key
+- name: create the service account key
+  command: openssl genrsa -out /var/lib/kubernetes/serviceaccount.key 2048
+  args:
+    creates: /var/lib/kubernetes/serviceaccount.key
+
+- file:
+    path: "{{ item }}"
+    owner: kube
+    group: kube
+  with_items:
+    - /var/lib/kubernetes/serviceaccount.key
+    - /var/log/kubernetes
+    - /var/lib/kubernetes
+    - /var/run/kubernetes
+
+### config etcd ###
+- name: set ETCD_LISTEN_CLIENT_URLS in /etc/etcd/etcd.conf
+  lineinfile:
+    dest: /etc/etcd/etcd.conf
+    regexp: '^ETCD_LISTEN_CLIENT_URLS='
+    line: ETCD_LISTEN_CLIENT_URLS="{{ etcd_listen_client_urls }}"
+    state: present
+    create: True
+
+### common configs for all Kubernetes services ###
+- name: kubernetes config for mater
+  template:
+    src: etc/kubernetes-master/{{ item }}
+    dest: /etc/kubernetes/{{ item }}
+  with_items:
+    - config
+    - apiserver
+    - controller-manager
+
+
+###### Configure Kubernetes minions ######
+- name: kubernetes config for minions
+  template:
+    src: etc/kubernetes-minions/{{ item }}
+    dest: /etc/kubernetes/{{ item }}
+  with_items:
+    - proxy
+    - kubelet
+
+# config /etc/kubernetes/cinder.conf
+- name: config /etc/kubernetes/cinder.conf
+  template:
+    src: etc/kubernetes-minions/cinder.conf
+    dest: /etc/kubernetes/cinder.conf
+
+- name: get rbd_key from /etc/ceph/ceph.client.cinder.keyring
+  shell: grep "key = " /etc/ceph/ceph.client.cinder.keyring  | cut -d" " -f3
+  register: rbd_key
+- debug: msg={{ rbd_key.stdout }}
+
+- name: set keyring in /etc/kubernetes/cinder.conf
+  lineinfile:
+    dest: /etc/kubernetes/cinder.conf
+    regexp: '^keyring ='
+    line: keyring = {{ rbd_key.stdout }}
+    state: present
+    create: True
+
+###### start service ######
+
+# For master
+- name: start service for master
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - etcd
+    - kubestack
+    - kube-apiserver
+    - kube-scheduler
+    - kube-controller-manager
+
+
+# For minions
+- name: start service for minions
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - hyperd
+    - kubelet
+    - kube-proxy
+
+###### Setup kubectl options ######
+- name: setup kubectl options
+  shell: kubectl config set-cluster default --server=http://{{ ansible_eth0.ipv4.address }}:8080 --insecure-skip-tls-verify=true
+  shell: kubectl config set-context default --cluster=default
+  shell: kubectl config use-context default

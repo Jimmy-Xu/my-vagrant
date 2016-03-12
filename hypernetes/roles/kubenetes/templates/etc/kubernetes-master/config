@@ -1,0 +1,9 @@
+# logging to stderr means we get it in the systemd journal
+KUBE_LOGTOSTDERR="--logtostderr=false --log-dir=/var/log/kubernetes"
+
+# journal message level, 0 is debug
+KUBE_LOG_LEVEL="--v=1”
+# Should this cluster be allowed to run privileged docker containers
+KUBE_ALLOW_PRIV="--allow_privileged=false"
+# How the controller-manager, scheduler, and proxy find the apiserver
+KUBE_MASTER="--master=http://{{ ansible_eth0.ipv4.address }}:8080"
