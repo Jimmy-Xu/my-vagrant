@@ -24,9 +24,9 @@ spec:
       gateway: 192.168.0.1
 EOF
 
-kubectl create -f ${testDir}/network.yaml || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} create -f ${testDir}/network.yaml || exit 1
 sleep 2
-kubectl get network || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} get network || exit 1
 
 
 
@@ -41,9 +41,9 @@ spec:
   network: net1
 EOF
 
-kubectl create -f ${testDir}/namespace.yaml || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} create -f ${testDir}/namespace.yaml || exit 1
 sleep 2
-kubectl get namespace || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} get namespace || exit 1
 
 
 
@@ -84,8 +84,8 @@ spec:
 EOF
 
 
-kubectl create -f ${testDir}/pod-ns1.yaml || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} create -f ${testDir}/pod-ns1.yaml || exit 1
 sleep 3
-kubectl --namespace=ns1 get pod || exit 1
+kubectl -s {{ ansible_eth0.ipv4.address }} --namespace=ns1 get pod || exit 1
 sleep 3
 hyper list

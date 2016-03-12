@@ -81,7 +81,7 @@
 
 #copy test_h8s.sh
 - name: copy test_h8s.sh
-  copy:
+  template:
     src: test_h8s.sh
     dest: /root/test_h8s.sh
 - file:
