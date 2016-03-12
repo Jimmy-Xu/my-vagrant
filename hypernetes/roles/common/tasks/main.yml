@@ -89,53 +89,54 @@
   args:
     creates: /root/h8s_deploy_env
 
-# set ssh
-- file: path=/root/.ssh state=directory mode=0755
-- name: set ssh keypair
-  copy:
-    src: ssh/{{ item }}
-    dest: /root/.ssh/
-  with_items:
-    - id_rsa
-    - id_rsa.pub
-    - config
-- file:
-    path: /root/.ssh/id_rsa
-    owner: root
-    group: root
-    mode: 0400
+# # set ssh
+# - file: path=/root/.ssh state=directory mode=0755
+# - name: set ssh keypair
+#   copy:
+#     src: ssh/{{ item }}
+#     dest: /root/.ssh/
+#   with_items:
+#     - id_rsa
+#     - id_rsa.pub
+#     - config
+# - file:
+#     path: /root/.ssh/id_rsa
+#     owner: root
+#     group: root
+#     mode: 0400
 
-###### clone devops ######
-# this is a private git repo, need add deploy key(example: deploy-for-dev-redadonly) in github with public keypair with "ssh/id_rsa.pub"
-- name: check /root/devops
-  shell: ls /root/devops/* | wc -l
-  register: devops_downloaded
-- debug: msg={{ devops_downloaded.stdout }}
-
-- name: set deploy key for github
-  copy:
-    src: github/deploy.pem
-    dest: /root/.ssh/deploy.pem
-- file:
-    path: /root/.ssh/deploy.pem
-    owner: root
-    group: root
-    mode: 0400
-
-- git: repo=git@github.com:getdvm/devops.git dest=/root/devops version=master accept_hostkey=yes key_file=/root/.ssh/deploy.pem
-  environment: "{{ proxy_env }}"
-  when: devops_downloaded.stdout == "0"
-
-# git config
-- name: change git config
-  command: git config core.filemode false
-  args:
-    chdir: /root/devops/
-
-- name: add -x filemode to shell script
-  shell: ls /root/devops/hypernetes-single-node/*.sh
-  register: sh_files
-- debug: msg={{ sh_files.stdout_lines }}
-
-- file: path={{ item }} owner=root group=root mode=755
-  with_items: sh_files.stdout_lines
+#
+# ###### clone devops ######
+# # this is a private git repo, need add deploy key(example: deploy-for-dev-redadonly) in github with public keypair with "ssh/id_rsa.pub"
+# - name: check /root/devops
+#   shell: ls /root/devops/* | wc -l
+#   register: devops_downloaded
+# - debug: msg={{ devops_downloaded.stdout }}
+#
+# - name: set deploy key for github
+#   copy:
+#     src: github/deploy.pem
+#     dest: /root/.ssh/deploy.pem
+# - file:
+#     path: /root/.ssh/deploy.pem
+#     owner: root
+#     group: root
+#     mode: 0400
+#
+# - git: repo=git@github.com:getdvm/devops.git dest=/root/devops version=master accept_hostkey=yes key_file=/root/.ssh/deploy.pem
+#   environment: "{{ proxy_env }}"
+#   when: devops_downloaded.stdout == "0"
+#
+# # git config
+# - name: change git config
+#   command: git config core.filemode false
+#   args:
+#     chdir: /root/devops/
+#
+# - name: add -x filemode to shell script
+#   shell: ls /root/devops/hypernetes-single-node/*.sh
+#   register: sh_files
+# - debug: msg={{ sh_files.stdout_lines }}
+#
+# - file: path={{ item }} owner=root group=root mode=755
+#   with_items: sh_files.stdout_lines

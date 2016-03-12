@@ -92,12 +92,12 @@ function quit(){
 }
 
 function ensure_config_file(){
-  if [ -s ${WORK_DIR}/roles/common/files/github/deploy.pem ];then
-    echo "roles/common/files/github/deploy.pem is ready"
-  else
-    echo "please add a privte keypair in '${WORK_DIR}/roles/common/files/github/deploy.pem' which has permission to pull privte repo github.com/getdvm/devops"
-    exit 1
-  fi
+  # if [ -s ${WORK_DIR}/roles/common/files/github/deploy.pem ];then
+  #   echo "roles/common/files/github/deploy.pem is ready"
+  # else
+  #   echo "please add a privte keypair in '${WORK_DIR}/roles/common/files/github/deploy.pem' which has permission to pull privte repo github.com/getdvm"
+  #   exit 1
+  # fi
 
   if [ -s ${WORK_DIR}/roles/common/vars/main.yml ];then
     echo "roles/common/vars/main.yml is ready"
