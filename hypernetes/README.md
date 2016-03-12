@@ -2,22 +2,6 @@ Run hypernetes in a VM
 ====================================
 >vagrant + libvirt + ansible + kvm
 
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
-
-- [dependence](#dependence)
-- [usage](#usage)
-	- [start vm](#start-vm)
-	- [enter vm](#enter-vm)
-		- [enter vm by vagrant](#enter-vm-by-vagrant)
-		- [enter vm by virsh](#enter-vm-by-virsh)
-	- [check service](#check-service)
-		- [check docker container](#check-docker-container)
-		- [check ceph status](#check-ceph-status)
-		- [check mongo service](#check-mongo-service)
-		- [check image service](#check-image-service)
-	- [test with image-service](#test-with-image-service)
-
-<!-- /TOC -->
 
 # dependence
 
@@ -25,7 +9,6 @@ Run hypernetes in a VM
 - libvirt
 - qemu
 - ansible
-- github.com/getdvm/devops
 
 # usage
 
@@ -38,6 +21,7 @@ $sudo ./util_centos.sh
   usage: ./util_centos.sh <command>
   <command>:
     run
+		quickrun
     list
     halt
     destroy
@@ -59,10 +43,13 @@ $ sudo vagrant status
   `vagrant halt`. To destroy the machine, you can run `vagrant destroy`.
 $ sudo vagrant ssh default
   Last login: Tue Mar  8 04:35:12 2016
-  [vagrant@localhost ~]$
+  [vagrant@h8s-single ~]$
 ```
 
 ### enter vm by virsh
+
+> default account: vagrant/vagrant
+
 ```
 $ sudo virsh list                  
    Id    Name                           State
@@ -79,51 +66,5 @@ $ sudo virsh console hypernetes_default
   localhost login: vagrant
   Password:
   Last login: Tue Mar  8 04:33:33 on ttyS0
-  [vagrant@localhost ~]$
-```
-
-## check service
-
-> run the following command in vm
-
-### check docker container
-```
-$ docker ps
-  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
-  bbfb22fa89af        mongo:3.2.3         "/entrypoint.sh mongo"   6 minutes ago       Up 6 minutes        0.0.0.0:27017->27017/tcp   hypernetes-mongo
-  74d436a39a98        xjimmyshcn/ceph     "/entrypoint.sh"         38 minutes ago      Up 38 minutes                                  ceph-demo
-```
-### check ceph status
-```
-$ sudo ceph -s
-    cluster 46e2b33c-8871-4963-94dc-00286adf1bee
-     health HEALTH_OK
-     monmap e1: 1 mons at {localhost=192.168.121.181:6789/0}
-            election epoch 1, quorum 0 localhost
-     mdsmap e17: 1/1/1 up {0=0=up:active}
-     osdmap e32: 1 osds: 1 up, 1 in
-            flags sortbitwise
-      pgmap v120: 192 pgs, 10 pools, 296 MB data, 281 objects
-            3538 MB used, 32642 MB / 38141 MB avail
-                 192 active+clean
-```
-
-### check mongo service
-```
-$ mongo 127.0.0.1:27017 --eval 'db.stats()'
-  MongoDB shell version: 3.2.3
-  connecting to: 127.0.0.1:27017/test
-  {
-  	"db" : "test",
-  	"collections" : 0,
-  	"objects" : 0,
-  	"avgObjSize" : 0,
-  	"dataSize" : 0,
-  	"storageSize" : 0,
-  	"numExtents" : 0,
-  	"indexes" : 0,
-  	"indexSize" : 0,
-  	"fileSize" : 0,
-  	"ok" : 1
-  }
+  [vagrant@h8s-single ~]$
 ```
