@@ -79,4 +79,11 @@
   tags:
     - generate-etc_security_limits_conf
 
-#
+#copy test_h8s.sh
+- name: copy test_h8s.sh
+  copy:
+    src: test_h8s.sh
+    dest: /root/test_h8s.sh
+- file:
+    path: /root/test_h8s.sh
+    mode: 0755

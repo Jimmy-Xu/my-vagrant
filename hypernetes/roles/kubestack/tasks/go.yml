@@ -6,20 +6,21 @@
     state: removed
 
 - name: check golang binary
-  shell: ls "/root/go{{ go_version }}.linux-amd64.tar.gz" | wc -l
-  register: golang_tga
-- debug: msg={{ golang_tga.stdout }}
+  shell: ls "/root/deps/go{{ go_version }}.linux-amd64.tar.gz" | wc -l
+  register: golang_tgz
+- debug: msg={{ golang_tgz.stdout }}
 - name: wget go binary
   get_url:
     url: "http://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
-    dest: /root
+    dest: /root/deps
     mode: 0644
-  when: golang_tga.stdout == "0"
+  when: golang_tgz.stdout == "0"
 
-- name: unarchive go
-  shell: tar -C {{ go_install_dir }} -xzf "go{{ go_version }}.linux-amd64.tar.gz"
-  args:
-    chdir: /root
+- name: unarchive golang
+  unarchive:
+    src: /root/deps/go{{ go_version }}.linux-amd64.tar.gz
+    dest: "{{ go_install_dir }}"
+    copy: no
 
 - name: create Go tools directory
   file:
