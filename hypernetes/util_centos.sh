@@ -91,11 +91,18 @@ function quit(){
   exit 1
 }
 
-function ensure_deploy_key(){
+function ensure_config_file(){
   if [ -s ${WORK_DIR}/roles/common/files/github/deploy.pem ];then
-    echo "github/deploy.pem is ready"
+    echo "roles/common/files/github/deploy.pem is ready"
   else
     echo "please add a privte keypair in '${WORK_DIR}/roles/common/files/github/deploy.pem' which has permission to pull privte repo github.com/getdvm/devops"
+    exit 1
+  fi
+
+  if [ -s ${WORK_DIR}/roles/common/vars/main.yml ];then
+    echo "roles/common/vars/main.yml is ready"
+  else
+    echo "please create file '${WORK_DIR}/roles/common/vars/main.yml', which container shadowsocks server ip"
     exit 1
   fi
 }
@@ -401,13 +408,13 @@ EOF
 mkdir -p ${WORK_DIR}/${IMAGE_CACHE} ${WORK_DIR}/${TMP_DIR}
 case "$1" in
   run)
-    ensure_deploy_key
+    ensure_config_file
     ensure_dependency
     prepare_image
     vagrant_up
     ;;
   quickrun)
-    ensure_deploy_key
+    ensure_config_file
     vagrant_up
     ;;
   list)
