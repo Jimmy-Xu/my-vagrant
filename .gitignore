@@ -1,8 +1,10 @@
+_image/
+_tmp/
+ansible/
+
 ceph/.vagrant
 ceph/ceph-ansible
 ceph/Vagrantfile
-_image
-_tmp
 ceph/*.deb
 ceph/*.rpm
 ceph/ansible

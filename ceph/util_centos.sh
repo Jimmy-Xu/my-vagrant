@@ -34,8 +34,8 @@
 
 ################################################################
 WORK_DIR=$(cd `dirname $0`; pwd)
-TMP_DIR="_tmp"
-IMAGE_CACHE="_image"
+TMP_DIR="../_tmp"
+IMAGE_CACHE="../_image"
 
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
@@ -166,7 +166,7 @@ function ensure_dependency(){
     sudo yum install -y asciidoc rpm-build python2-devel
     sudo yum install -y PyYAML python-httplib2 python-jinja2 python-keyczar python-paramiko sshpass
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
-    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+    cd ${WORK_DIR}/../ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
     ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
@@ -447,8 +447,8 @@ Qemu           : $(qemu-system-x86_64 --version | grep -o "[0-9]\.[0-9]")
 
 EOF
 
-echo "press any key to continue..."
-read -n 1
+echo "sleep 3 seconds, then continue..."
+sleep 3
 
   case "${PROVIDER}" in
     libvirt)
@@ -491,6 +491,8 @@ function show_usage(){
   usage: ./util.sh <command>
   <command>:
     run
+    quickrun
+    halt
     list
     destroy
 EOF
@@ -505,8 +507,14 @@ case "$1" in
     prepare_image
     vagrant_up
     ;;
+  quickrun)
+    vagrant_up
+    ;;
   list)
     cd ${CEPH_ANSIBLE_DIR} && vagrant status
+    ;;
+  halt)
+    vagrant halt
     ;;
   destroy)
     destroy_all
