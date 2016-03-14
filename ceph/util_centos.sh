@@ -474,8 +474,8 @@ function destroy_all(){
   rm .vagrant -rf && rm *.vdi -rf && cd -
   case "${PROVIDER}" in
     libvirt)
-      virsh list --all| grep -v Name | awk '{print $2}' | xargs -I vm_name virsh destroy vm_name
-      virsh list --all| grep -v Name | awk '{print $2}' | xargs -I vm_name virsh undefine vm_name
+      virsh list --all| grep -v Name | awk '{print $2}' | grep 'ceph-ansible' | xargs -I vm_name virsh destroy vm_name
+      virsh list --all| grep -v Name | awk '{print $2}' | grep 'ceph-ansible' | xargs -I vm_name virsh undefine vm_name
       ;;
     virtualbox)
       VBoxManage list runningvms | awk '{print $2;}' | xargs -I vmid VBoxManage controlvm vmid poweroff
