@@ -68,6 +68,8 @@
     dest: /etc/sysctl.conf
   tags:
     - generate-etc_sysctl_conf
+- name: load bridge module
+  command: modprobe bridge
 - name: check sysctl
   command: sysctl -p
 

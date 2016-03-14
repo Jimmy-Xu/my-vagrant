@@ -28,7 +28,7 @@
   tags:
    - generate-my_answer.txt
 
-#run install openstack
+#run install openstack(logfile: /var/tmp/packstack/latest/openstack-setup.log, longtime to install)
 - name: run packstack
   shell: packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
   args:

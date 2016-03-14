@@ -37,11 +37,12 @@
     creates: /root/ceph-deploy/ceph-deploy-install.ok
 
 # mon init
-- name: ensure owner of /var/lib/ceph/mon/ceph-h8s-single/store.db is ceph
-  file:
-    path: /var/lib/ceph/mon/ceph-h8s-single/store.db
-    owner: ceph
-    group: ceph
+- name: mon init
+  shell: ceph-deploy --overwrite-conf mon create-initial && touch /root/ceph-deploy/ceph-deploy-mon-init.ok
+  args:
+    chdir: /root/ceph-cluster
+    creates: /root/ceph-deploy/ceph-deploy-mon-init.ok
+
 - name: update mon_pg_warn_max_per_osd in ceph.conf
   lineinfile:
     dest: /etc/ceph/ceph.conf
@@ -50,11 +51,12 @@
     state: present
     create: True
     insertafter: '^[global]'
-- name: mon init
-  shell: ceph-deploy --overwrite-conf mon create-initial && touch /root/ceph-deploy/ceph-deploy-mon-init.ok
-  args:
-    chdir: /root/ceph-cluster
-    creates: /root/ceph-deploy/ceph-deploy-mon-init.ok
+
+- name: ensure owner of /var/lib/ceph/mon/ceph-h8s-single/store.db is ceph
+  file:
+    path: /var/lib/ceph/mon/ceph-h8s-single/store.db
+    owner: ceph
+    group: ceph
 
 # osd1
 - name: deploy osd1

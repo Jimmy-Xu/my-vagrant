@@ -34,8 +34,8 @@
 
 ################################################################
 WORK_DIR=$(cd `dirname $0`; pwd)
-TMP_DIR="_tmp"
-IMAGE_CACHE="_image"
+TMP_DIR="../_tmp"
+IMAGE_CACHE="../_image"
 
 VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
 VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
@@ -142,7 +142,7 @@ function ensure_dependency(){
     sudo yum install -y asciidoc rpm-build python2-devel
     sudo yum install -y PyYAML python-httplib2 python-jinja2 python-keyczar python-paramiko sshpass
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
-    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+    cd ${WORK_DIR}/../ansible && git checkout -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
     ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then

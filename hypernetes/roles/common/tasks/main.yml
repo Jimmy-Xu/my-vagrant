@@ -49,6 +49,11 @@
   tags:
    - config-shadowsocks
 
+- name: add systemd config for sslocal
+  copy:
+    src: usr/lib/systemd/system/sslocal.service
+    dest: /usr/lib/systemd/system/sslocal.service
+
 - name: start sslocal service
   service:
     name: sslocal
