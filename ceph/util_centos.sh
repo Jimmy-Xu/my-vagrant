@@ -501,6 +501,17 @@ function check_ip(){
   done
 }
 
+function check_ssh(){
+  cd ${CEPH_ANSIBLE_DIR}
+  for h in $( sudo virsh list | grep ceph-ansible | awk '{print $2}')
+  do
+    echo -e "\n==================================================="
+    echo "  check ssh-config of [$h]"
+    echo "==================================================="
+    sudo vagrant ssh-config ${h/ceph-ansible_/}
+  done
+}
+
 function show_usage(){
   cat <<EOF
   usage: ./util_centos.sh <command>
@@ -510,6 +521,7 @@ function show_usage(){
     halt
     list
     check_ip
+    check_ssh
     destroy
 EOF
 }
@@ -537,6 +549,9 @@ case "$1" in
     ;;
   check_ip)
     check_ip
+    ;;
+  check_ssh)
+    check_ssh
     ;;
   *)
     show_usage
