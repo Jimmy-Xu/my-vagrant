@@ -2,6 +2,10 @@ _image/
 _tmp/
 ansible/
 
+hypernetes/.vagrant
+hypernetes/roles/common/files/github/deploy.pem
+hypernetes/roles/common/vars/main.yml
+
 ceph/.vagrant
 ceph/ceph-ansible
 ceph/Vagrantfile
@@ -10,9 +14,7 @@ ceph/*.rpm
 ceph/ansible
 
 imaged/.vagrant
-
-hypernetes/roles/common/files/github/deploy.pem
-hypernetes/roles/common/vars/main.yml
+imaged/roles/common/vars/main.yml
 
 libvirt/.vagrant
-.vagrant
+

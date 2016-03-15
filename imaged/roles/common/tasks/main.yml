@@ -1,0 +1,54 @@
+---
+- name: check CentOS-Base.repo
+  stat: path=/etc/yum.repos.d/CentOS-Base.repo.backup
+  register: orig_centos_base_repo
+- name: backup CentOS-Base.repo
+  command: mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+  when: orig_centos_base_repo.stat.exists == False
+- name: download CentOS-Base.repo from 163
+  get_url: url=http://mirrors.163.com/.help/CentOS7-Base-163.repo dest=/etc/yum.repos.d/CentOS-Base.repo
+- name: install epel-release
+  yum:
+    name: epel-release
+    state: present
+- name: install common package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - wget
+    - net-tools
+    - python-pip
+    - libvirt
+    - git
+    - jq
+
+###### start shadowsocks sslcoal service(socks5 proxy) ######
+- name: install shadowsocks
+  pip:
+    name: shadowsocks
+    version: 2.8.2
+- file: path=/etc/shadowsocks state=directory mode=0755
+- name: config shadowsocks
+  template:
+    src: etc/shadowsocks/client.json
+    dest: /etc/shadowsocks/client.json
+- name: install unit file for sslocal service
+  copy: src=usr/lib/systemd/system/sslocal.service dest=/usr/lib/systemd/system/sslocal.service
+  notify:
+    - reload-systemd
+- name: reload-systemd
+  sudo: yes
+  command: systemctl daemon-reload
+- name: start sslocal service
+  service: name=sslocal state=started enabled=yes
+
+###### start privoxy service(socks5 proxy -> http proxy) ######
+- name: install privoxy
+  yum:
+    name: privoxy
+    state: present
+- name: config privoxy
+  copy: src=etc/privoxy/config dest=/etc/privoxy/config
+- name: start privoxy service
+  service: name=privoxy state=started enabled=yes

@@ -1,0 +1,51 @@
+---
+###### install ceph client ######
+- name: add ceph yum repo
+  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
+- name: install ceph client
+  yum:
+    name: ceph-common
+    state: present
+
+# pull ceph image
+- name: check ceph image
+  shell: docker images | grep 'ceph.*demo' | wc -l
+  register: ceph_image
+- debug: msg={{ ceph_image.stdout }}
+- name: pull ceph image
+  command: docker pull ceph/demo
+  when: ceph_image.stdout != "1"
+
+###### start ceph server in container ######
+- git: repo=https://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master
+  environment: "{{ proxy_env }}"
+- name: build xjimmyshcn/ceph image
+  docker_image: path="/home/vagrant/learn-ceph/" name="xjimmyshcn/ceph" state=present
+- name: get the network prefix
+  shell: ip route | grep eth0 | grep -v default | awk '{print $1}'
+  register: network_prefix
+- debug: msg={{ network_prefix.stdout }}
+- name: start ceph container
+  docker:
+    name: ceph-demo
+    image: xjimmyshcn/ceph
+    state: reloaded
+    net: host
+    privileged: yes
+    volumes:
+      - /etc/ceph:/etc/ceph
+      - /var/log/ceph:/var/log/ceph
+      - /var/lib/ceph:/var/lib/ceph
+      - /dev:/dev
+      - /sys:/sys
+    env:
+      MON_IP: "{{ ansible_eth0.ipv4.address }}"
+      CEPH_NETWORK: "{{ network_prefix.stdout }}"
+#create ceph pool 'hyper'
+- name: check pool
+  shell: ceph osd pool ls | grep hyper | wc -l
+  register: hyper_pool
+- debug: msg={{ hyper_pool.stdout }}
+- name: create ceph pool 'hyper'
+  shell: ceph osd pool create hyper 64
+  when: hyper_pool.stdout == "0"

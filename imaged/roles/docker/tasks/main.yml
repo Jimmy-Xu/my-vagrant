@@ -1,0 +1,24 @@
+---
+###### start docker daemon ######
+- name: add docker yum repo
+  copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
+- name: install docker
+  yum:
+    name: docker-engine
+    state: present
+- name: config docker
+  copy: src=etc/sysconfig/docker dest=/etc/sysconfig/docker
+- name: install unit file for docker service
+  copy: src=usr/lib/systemd/system/docker.service dest=/usr/lib/systemd/system/docker.service
+  notify:
+    - reload-systemd
+- name: start docker service
+  service: name=docker state=started enabled=yes
+- name: add user to docker group
+  user: name=vagrant comment="default user" group=docker
+
+# ansible docker module required
+- name: install docker-py
+  pip:
+    name: docker-py
+    state: present

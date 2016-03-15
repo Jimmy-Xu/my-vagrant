@@ -34,8 +34,8 @@
 
 ################################################################
 WORK_DIR=$(cd `dirname $0`; pwd)
-TMP_DIR="_tmp"
-IMAGE_CACHE="_image"
+TMP_DIR="../_tmp"
+IMAGE_CACHE="../_image"
 
 VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
 VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
@@ -91,6 +91,14 @@ function quit(){
   exit 1
 }
 
+function ensure_config_file(){
+  if [ -s ${WORK_DIR}/roles/common/vars/main.yml ];then
+    echo "roles/common/vars/main.yml is ready"
+  else
+    echo "please create file '${WORK_DIR}/roles/common/vars/main.yml', which container shadowsocks server ip"
+    exit 1
+  fi
+}
 
 
 function ensure_dependency(){
@@ -128,7 +136,7 @@ function ensure_dependency(){
     sudo yum install -y asciidoc rpm-build python2-devel
     sudo yum install -y PyYAML python-httplib2 python-jinja2 python-keyczar python-paramiko sshpass
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
-    cd ${WORK_DIR}/ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+    cd ${WORK_DIR}/../ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
     ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
@@ -341,8 +349,8 @@ Qemu           : $(qemu-system-x86_64 --version | grep -o "[0-9]\.[0-9]")
 
 EOF
 
-echo "press any key to continue..."
-read -n 1
+echo "sleep 3 seconds, then continue..."
+sleep 3
 
   case "${PROVIDER}" in
     libvirt)
@@ -382,6 +390,7 @@ function show_usage(){
   usage: ./util_centos.sh <command>
   <command>:
     run
+    quickrun
     list
     halt
     destroy
@@ -392,8 +401,13 @@ EOF
 mkdir -p ${WORK_DIR}/${IMAGE_CACHE} ${WORK_DIR}/${TMP_DIR}
 case "$1" in
   run)
+    ensure_config_file
     ensure_dependency
     prepare_image
+    vagrant_up
+    ;;
+  quickrun)
+    ensure_config_file
     vagrant_up
     ;;
   list)
