@@ -22,6 +22,7 @@
   get_url:
     url: "{{ k8s_bin_url }}"
     dest: /root/deps/k8s-bin.tar.gz
+    checksum: md5:a4a403c9d106ee82aa4ddc4cfd77fd2c
 - name: unarchive k8s-bin
   unarchive:
     src: /root/deps/k8s-bin.tar.gz
