@@ -1,7 +1,6 @@
-Run hypernetes in a VM
+Run hypernetes all in one VM
 ====================================
 >vagrant + libvirt + ansible + kvm
-
 
 # dependence
 
@@ -17,17 +16,22 @@ Run hypernetes in a VM
 > then `run` command will ensure all the dependency package
 
 ```
+//show usage
 $sudo ./util_centos.sh   
   usage: ./util_centos.sh <command>
   <command>:
     run
-		quickrun
+    quickrun
     list
     halt
     destroy
 
 //start everything in one command
+//1)ensure runtime environment(vagrant,libvirt,ansible...)
 $ sudo ./util_centos.sh run
+
+//2)quick run, skip ensure runtime environment
+$ sudo ./util_centos.sh quickrun
 ```
 
 ## enter vm
@@ -68,3 +72,13 @@ $ sudo virsh console hypernetes_default
   Last login: Tue Mar  8 04:33:33 on ttyS0
   [vagrant@h8s-single ~]$
 ```
+
+## main task
+
+- base_setup
+- openstack
+- ceph
+- cinder
+- hyper
+- kubestack
+- kubenetes
