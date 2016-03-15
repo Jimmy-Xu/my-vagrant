@@ -469,6 +469,11 @@ sleep 3
   vagrant provision
 }
 
+function vagrant_halt(){
+  cd ${CEPH_ANSIBLE_DIR} && vagrant halt
+  vagrant status
+}
+
 function destroy_all(){
   cd ${CEPH_ANSIBLE_DIR} && vagrant destroy
   rm .vagrant -rf && rm *.vdi -rf && cd -
@@ -514,7 +519,7 @@ case "$1" in
     cd ${CEPH_ANSIBLE_DIR} && vagrant status
     ;;
   halt)
-    vagrant halt
+    vagrant_halt
     ;;
   destroy)
     destroy_all
