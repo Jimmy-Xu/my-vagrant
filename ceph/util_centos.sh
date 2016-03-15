@@ -39,7 +39,7 @@ IMAGE_CACHE="../_image"
 
 CEPH_ANSIBLE_DIR="${WORK_DIR}/ceph-ansible"
 CEPH_ANSIBLE_REPO="https://github.com/ceph/ceph-ansible.git"
-CEPH_ANSIBLE_COMMIT="63d7824c9c1eec4e15c210c08fa89cba9c881e5d"
+CEPH_ANSIBLE_COMMIT="4331b8b6396d2906621007c70ce66263ed4aac04"
 COMMON_CONFIG="roles/ceph-common/defaults/main.yml"
 
 SITE_TMPL="site.yml.sample"
@@ -491,14 +491,25 @@ function destroy_all(){
   esac
 }
 
+function check_ip(){
+  for h in $( sudo virsh list | grep ceph-ansible | awk '{print $2}')
+  do
+    echo -e "\n\n==================================================="
+    echo "  check ip of [$h]"
+    echo "==================================================="
+    sudo ./check_ip.sh $h
+  done
+}
+
 function show_usage(){
   cat <<EOF
-  usage: ./util.sh <command>
+  usage: ./util_centos.sh <command>
   <command>:
     run
     quickrun
     halt
     list
+    check_ip
     destroy
 EOF
 }
@@ -523,6 +534,9 @@ case "$1" in
     ;;
   destroy)
     destroy_all
+    ;;
+  check_ip)
+    check_ip
     ;;
   *)
     show_usage

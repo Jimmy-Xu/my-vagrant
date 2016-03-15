@@ -3,7 +3,21 @@
 ### start all vms
 
 ```shell
-$ sudo ./util.sh run
+//usage
+sudo ./util_centos.sh
+  usage: ./util_centos.sh <command>
+  <command>:
+    run
+    quickrun
+    halt
+    list
+    check_ip
+    destroy
+
+//start ceph cluster
+$ sudo ./util_centos.sh run       //ensure runtime environment, install vagrant,ansible,libvirt...
+or
+$ sudo ./util_centos.sh quickrun  //skip ensure runtime environment
   ...
   PLAY RECAP *********************************************************************
   mon0                       : ok=73   changed=17   unreachable=0    failed=0   
@@ -31,12 +45,15 @@ $ sudo vagrant status
   osd1                      running (libvirt)
   osd2                      running (libvirt)
   ...
+
+// ensure eth0 has ip
+$ sudo ./util_centos.sh check_ip
 ```
 
 ### list all vms
 
 ```
-$ sudo ./util.sh list
+$ sudo ./util_centos.sh list
   Current machine states:
   client0                   running (libvirt)
   rgw0                      running (libvirt)
@@ -125,7 +142,7 @@ $ sudo vagrant ssh client0
 ### delete all vms
 
 ```shell
-$ sudo ./util.sh destroy
+$ sudo ./util_centos.sh destroy
 ```
 
 ## Usage
@@ -339,7 +356,7 @@ $ dhclient eth1
 Error
 
 ```
-$ sudo ./util.sh run
+$ sudo ./util_centos.sh run
   ...
   PLAY RECAP *********************************************************************
   mon0                       : ok=78   changed=5    unreachable=0    failed=1
@@ -353,7 +370,7 @@ Solution:
 
 ```
 //try one more time
-$ sudo ./util.sh run
+$ sudo ./util_centos.sh run
 or
 $ cd ceph-ansible
 $ sudo vagrant up
