@@ -22,4 +22,7 @@
 - name: config imaged
   copy: src=etc/imaged/config dest=/etc/imaged/config
 - name: start imaged
-  service: name=imaged state=started enabled=yes
+  service:
+    name: imaged
+    state: started
+    enabled: yes
