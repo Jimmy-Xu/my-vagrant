@@ -1,0 +1,14 @@
+---
+- name: reload-systemd
+  sudo: yes
+  command: systemctl daemon-reload
+
+- name: restart-sslocal
+  service:
+    name: sslocal
+    state: restarted
+
+- name: restart-privoxy
+  service:
+    name: privoxy
+    state: restarted

@@ -2,6 +2,8 @@
 ###### install mongo client ######
 - name: add mongo yum repo
   copy: src=etc/yum.repos.d/mongodb.repo dest=/etc/yum.repos.d/mongodb.repo
+
+# install mongo client
 - name: install mongo client
   yum:
     name: mongodb-org-shell
@@ -21,7 +23,7 @@
   docker:
     name: imaged-mongo
     image: mongo:3.2.3
-    state: reloaded
+    state: started
     volumes:
       - /var/lib/imaged/mongo:/data/db
     ports:

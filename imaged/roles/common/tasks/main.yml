@@ -22,8 +22,10 @@
     - libvirt
     - git
     - jq
+    - iptables
 
 ###### start shadowsocks sslcoal service(socks5 proxy) ######
+#shadowsocks need restart first_time
 - name: install shadowsocks
   pip:
     name: shadowsocks
@@ -33,10 +35,13 @@
   template:
     src: etc/shadowsocks/client.json
     dest: /etc/shadowsocks/client.json
+  notify:
+    - restart-sslocal
 - name: install unit file for sslocal service
   copy: src=usr/lib/systemd/system/sslocal.service dest=/usr/lib/systemd/system/sslocal.service
   notify:
     - reload-systemd
+    - restart-sslocal
 - name: reload-systemd
   sudo: yes
   command: systemctl daemon-reload
@@ -44,11 +49,50 @@
   service: name=sslocal state=started enabled=yes
 
 ###### start privoxy service(socks5 proxy -> http proxy) ######
+#privoxy need restart first_time
 - name: install privoxy
   yum:
     name: privoxy
     state: present
 - name: config privoxy
   copy: src=etc/privoxy/config dest=/etc/privoxy/config
+  notify:
+    - restart-privoxy
 - name: start privoxy service
   service: name=privoxy state=started enabled=yes
+
+
+#disable firewalld
+- name: disalbe firewalld service
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+#check iptables
+- name: check iptables
+  shell: iptables -F && iptables -X
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+#generate sysctl.conf
+- name: generate /etc/sysctl.conf
+  copy:
+    src: etc/sysctl.conf
+    dest: /etc/sysctl.conf
+  tags:
+    - generate-etc_sysctl_conf
+- name: load bridge module
+  command: modprobe bridge
+- name: check sysctl
+  command: sysctl -p
+
+#generate limits.conf
+- name: generate limits.conf
+  copy:
+    src: etc/security/limits.conf
+    dest: /etc/security/limits.conf
+  tags:
+    - generate-etc_security_limits_conf

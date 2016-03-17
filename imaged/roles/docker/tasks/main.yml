@@ -10,8 +10,13 @@
   copy: src=etc/sysconfig/docker dest=/etc/sysconfig/docker
 - name: install unit file for docker service
   copy: src=usr/lib/systemd/system/docker.service dest=/usr/lib/systemd/system/docker.service
+  register: docker_systemd_config
   notify:
     - reload-systemd
+    - restart-docker
+- name: ensure systemd is reloaded if docker.service has changed
+  shell: systemctl daemon-reload
+  when: docker_systemd_config.changed
 - name: start docker service
   service: name=docker state=started enabled=yes
 - name: add user to docker group

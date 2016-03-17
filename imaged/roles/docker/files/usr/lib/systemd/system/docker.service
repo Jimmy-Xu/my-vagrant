@@ -2,7 +2,8 @@
 Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
 After=network.target docker.socket
-Requires=docker.socket
+#Requires=docker.socket
+Requires=network.target docker.socket
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/docker
