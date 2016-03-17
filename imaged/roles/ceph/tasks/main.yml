@@ -17,7 +17,7 @@
   when: ceph_image.stdout != "1"
 
 ###### start ceph server in container ######
-- git: repo=https://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master
+- git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master
   environment: "{{ proxy_env }}"
 - name: build xjimmyshcn/ceph image
   docker_image: path="/home/vagrant/learn-ceph/" name="xjimmyshcn/ceph" state=present
@@ -29,7 +29,7 @@
   docker:
     name: ceph-demo
     image: xjimmyshcn/ceph
-    state: reloaded
+    state: started
     net: host
     privileged: yes
     volumes:
