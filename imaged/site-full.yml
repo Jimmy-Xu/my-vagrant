@@ -1,0 +1,13 @@
+---
+- hosts: all
+  sudo: true
+  vars:
+    proxy_env:
+      http_proxy: http://127.0.0.1:8118
+      https_proxy: https://127.0.0.1:8118
+  roles:
+    - common
+    - docker
+    - mongo
+    - ceph
+    - imaged

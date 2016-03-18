@@ -390,7 +390,8 @@ function show_usage(){
   usage: ./util_centos.sh <command>
   <command>:
     run
-    quickrun
+    runfull
+    runimagedonly
     list
     halt
     destroy
@@ -398,6 +399,7 @@ EOF
 }
 
 ## main #################################################
+cd ${WORK_DIR}
 mkdir -p ${WORK_DIR}/${IMAGE_CACHE} ${WORK_DIR}/${TMP_DIR}
 case "$1" in
   run)
@@ -406,7 +408,17 @@ case "$1" in
     prepare_image
     vagrant_up
     ;;
-  quickrun)
+  runfull)
+    ls site.yml >/dev/null 2>&1
+    [ $? -eq 0 ] && rm -rf site.yml
+    ln -s site-full.yml site.yml
+    ensure_config_file
+    vagrant_up
+    ;;
+  runimagedonly)
+    ls site.yml >/dev/null 2>&1
+    [ $? -eq 0 ] && rm -rf site.yml
+    ln -s site-imaged-only.yml site.yml
     ensure_config_file
     vagrant_up
     ;;

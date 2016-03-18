@@ -14,7 +14,7 @@ ceph/*.rpm
 ceph/ansible
 
 imaged/.vagrant
+imaged/site.yml
 imaged/roles/common/vars/main.yml
 
 libvirt/.vagrant
-
