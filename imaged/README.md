@@ -24,13 +24,15 @@ Run image-service in a VM
 
 |    package     |           version        |
 |      ---       |           ---            |
-| Ansible        | 2.0.0.2                  |
-| Ruby           | 2.0.0                    |
-| Germ           | ruby-libvirt (0.5.2)     |
-| Vagrant        | 1.8.1                    |
-| Vagrant plugins| vagrant-libvirt (0.0.32) |
-| Libvirt        | 1.2.1                    |
-| Qemu           | 2.0                      |
+| Ansible        | 2.3.0.0                  |
+| Ruby           | 2.2.5                    |
+| Germ           | ruby-libvirt (0.7.0)     |
+| Vagrant        | 1.9.5                    |
+| Vagrant plugins| vagrant-libvirt (0.0.40) |
+| Vagrant plugins| vagrant-mutate (1.2.0)   |
+| Vagrant plugins| vagrant-proxyconf (1.5.2)|
+| Libvirt        | 2.0.0                    |
+| Qemu           | 2.4.1                    |
 
 # usage
 
@@ -48,8 +50,33 @@ $sudo ./util_centos.sh
     destroy
 
 //start everything in one command
-$ sudo ./util_centos.sh run
+$ ./util_centos.sh run
 ```
+
+### FAQ
+
+Error occur when run vagrant up
+```
+Error while connecting to libvirt: Error making a connection to libvirt URI qemu:///system?no_verify=1&keyfile=/home/xjimmy/.ssh/id_rsa:
+Call to virConnectOpen failed: authentication unavailable: no polkit agent available to authenticate action 'org.libvirt.unix.manage'
+```
+Solution
+```
+REF: https://www.c5a3.com/p/497
+
+$ cat /etc/polkit-1/localauthority/50-local.d/50-org.libvirt-group-access.pkla
+[libvirt group Management Access]
+Identity=unix-group:libvirt
+Action=org.libvirt.unix.manage
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
+$ groupadd libvirt
+$ usermod -a -G libvirt ${USERNAME}
+
+```
+
 
 ## enter vm
 
@@ -74,6 +101,7 @@ $ sudo virsh list
   ----------------------------------------------------
    5     imaged_default                 running
 
+//default acount is 'vagrant/vagrant'
 $ sudo virsh console imaged_default
   Connected to domain imaged_default
   Escape character is ^]

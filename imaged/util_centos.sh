@@ -2,15 +2,17 @@
 ################################################################
 # requirement:
 # --------------------------------------------------------------
-#  - ansible 2.x
-#  - vagrant 1.8.x
+#  - ansible 2.3.0.0
+#  - vagrant 1.9.5
+#    - vagrant-libvirt (0.0.40)
+#    - vagrant-mutate (1.2.0)
+#    - vagrant-proxyconf (1.5.2)
 # ----libvirt------
-#  - qemu, libvirt-bin
-#  - ruby 2.2+
-#  - ruby-libvirt
-#  - vagrant-libvirt
+#  - qemu(2.4.1), libvirt-bin(2.0)
+#  - ruby 2.2.5
+#  - ruby-libvirt 0.7.0
 # ----virtualbox------
-#  - virtualbox 5.x
+#  - virtualbox 5.1.22
 ################################################################
 # test env:
 # --------------------------------------------------------------
@@ -37,10 +39,13 @@ WORK_DIR=$(cd `dirname $0`; pwd)
 TMP_DIR="../_tmp"
 IMAGE_CACHE="../_image"
 
-VAGRANT_PKG="vagrant_1.8.1_x86_64.rpm"
-VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.8.1/${VAGRANT_PKG}"
-VIRTUALBOX_PKG="VirtualBox-5.0-5.0.14_105127_el7-1.x86_64.rpm"
-VIRTUALBOX_URL="http://download.virtualbox.org/virtualbox/5.0.14/${VIRTUALBOX_PKG}"
+VAGRANT_PKG="vagrant_1.9.5_x86_64.rpm"
+VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.5/${VAGRANT_PKG}"
+VIRTUALBOX_PKG="VirtualBox-5.1-5.1.22_115126_el7-1.x86_64.rpm"
+VIRTUALBOX_URL="http://download.virtualbox.org/virtualbox/5.1.22/${VIRTUALBOX_PKG}"
+
+RUBY_VER=2.2.5
+RUBY_LIBVIRT=0.7.0
 
 ##################################
 ##            provider           #
@@ -60,8 +65,8 @@ LV_FEDORA22_URL="https://download.fedoraproject.org/pub/fedora/linux/releases/22
 LV_FEDORA22_IMG="Fedora-Cloud-Base-Vagrant-22-20150521.x86_64.vagrant-libvirt.box"
 #------------------------------------------------
 LV_CENTOS7BOX_NAME="libvirt/centos/7"
-LV_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1601.01/providers/libvirt.box"
-LV_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.LibVirt.box"
+LV_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1611.01/providers/libvirt.box"
+LV_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1611_01.LibVirt.box"
 
 
 ##################################
@@ -81,8 +86,8 @@ VB_UBUNTU1404BOX_URL="https://atlas.hashicorp.com/ubuntu/boxes/trusty64/versions
 VB_UBUNTU1404BOX_IMG="trusty-server-cloudimg-amd64-vagrant-disk1.box"
 #------------------------------------------------
 VB_CENTOS7BOX_NAME="virtualbox/centos/7"
-VB_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1601.01/providers/virtualbox.box"
-VB_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1601_01.VirtualBox.box"
+VB_CENTOS7BOX_URL="https://atlas.hashicorp.com/centos/boxes/7/versions/1611.01/providers/virtualbox.box"
+VB_CENTOS7BOX_IMG="CentOS-7-x86_64-Vagrant-1611_01.VirtualBox.box"
 
 
 ################################################################
@@ -130,15 +135,15 @@ function ensure_dependency(){
   fi
 
   echo "----------------------------------------"
-  echo "[for common] ensure ansible 2.x installed"
-  ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
+  echo "[for common] ensure ansible 2.3.0 installed"
+  ansible --version | grep "^ansible 2.3" >/dev/null 2>&1
   if [ $? -ne 0 ];then
     sudo yum install -y asciidoc rpm-build python2-devel
     sudo yum install -y PyYAML python-httplib2 python-jinja2 python-keyczar python-paramiko sshpass
     git clone git://github.com/ansible/ansible.git --recursive ${WORK_DIR}/ansible
-    cd ${WORK_DIR}/../ansible && git co -f v2.0.0.2-1 -b v2.0.0.2-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
+    cd ${WORK_DIR}/../ansible && git co -f v2.3.0.0-1 -b v2.3.0.0-1 && git submodule update && make rpm && sudo rpm -Uvh ./rpm-build/ansible-*.noarch.rpm && cd -
 
-    ansible --version | grep "^ansible 2.0" >/dev/null 2>&1
+    ansible --version | grep "^ansible 2.3.0" >/dev/null 2>&1
     if [ $? -ne 0 ];then
       quit "install ansible failed"
     else
@@ -175,7 +180,15 @@ function ensure_dependency(){
     fi
 
     echo "----------------------------------------"
-    echo "[for libvirt] ensure ruby 2.0.x installed"
+    echo "install rvm"
+    which rvm >/dev/null 2>&1
+    if [ $? -ne 0 ];then
+      curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+      curl -L get.rvm.io | bash -s stable
+    fi
+
+    echo "----------------------------------------"
+    echo "[for libvirt] ensure ruby ${RUBY_VER} installed"
     case $USER in
       root) if [ -s /etc/profile.d/rvm.sh ];then
               source /etc/profile.d/rvm.sh
@@ -186,18 +199,24 @@ function ensure_dependency(){
             fi
             ;;
     esac
-    ruby --version | grep "ruby 2.0" >/dev/null 2>&1
+    rvm reload
+    rvm requirements run
+
+    ruby --version | grep "ruby ${RUBY_VER}" >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      sudo yum install -y ruby ruby-devel
-      ruby --version | grep "ruby 2.0" >/dev/null 2>&1
+      sudo yum install -y ruby-devel
+      sudo rvm install ${RUBY_VER} --disable-binary
+      sudo rvm use ${RUBY_VER} --default
+
+      ruby --version | grep "ruby ${RUBY_VER}" >/dev/null 2>&1
       if [ $? -ne 0 ];then
-        quit "[for libvirt] install ruby 2.0.x failed"
+        quit "[for libvirt] install ruby ${RUBY_VER} failed"
       else
-        echo "[for libvirt] ruby2.0.x install successfully"
+        echo "[for libvirt] ruby ${RUBY_VER} install successfully"
       fi
     else
       ruby --version
-      echo "[for libvirt] ruby2.0.x alreay installed"
+      echo "[for libvirt] ruby ${RUBY_VER} alreay installed"
     fi
 
     echo "[for libvirt] use taobao gem source"
@@ -206,18 +225,18 @@ function ensure_dependency(){
 
     echo "-----------------------------"
     echo "[for libvirt] ensure ruby-libvirt"
-    gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+    gem list | grep "ruby-libvirt (${RUBY_LIBVIRT})" >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+      gem list | grep "ruby-libvirt (${RUBY_LIBVIRT})" >/dev/null 2>&1
     fi
     if [ $? -ne 0 ];then
       sudo yum install -y libxslt-devel libxml2-devel libvirt-devel libguestfs-tools-c
-      gem install --source=https://ruby.taobao.org/ ruby-libvirt -v '0.5.2'
-      gem list | grep "ruby-libvirt (0.5.2)" >/dev/null 2>&1
+      gem install --source=https://ruby.taobao.org/ ruby-libvirt -v "${RUBY_LIBVIRT}"
+      gem list | grep "ruby-libvirt (${RUBY_LIBVIRT})" >/dev/null 2>&1
       if [ $? -ne 0 ];then
-        echo "[for libvirt] ruby-libvirt 0.5.2 installed failed"
+        echo "[for libvirt] ruby-libvirt ${RUBY_LIBVIRT} installed failed"
       else
-        echo "[for libvirt] ruby-libvirt 0.5.2 install successfully"
+        echo "[for libvirt] ruby-libvirt ${RUBY_LIBVIRT} install successfully"
       fi
     else
       echo "[for libvirt] ruby-libvirt already installed"
@@ -363,7 +382,8 @@ sleep 3
       ;;
   esac
 
-  vagrant up --debug --no-provision --provider=${PROVIDER}
+  #vagrant up --debug --no-provision --provider=${PROVIDER}
+  vagrant up --no-provision --provider=${PROVIDER}
   sleep 1
   VAGRANT_LOG=info vagrant provision
 }

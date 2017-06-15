@@ -8,14 +8,14 @@
   get_url: url="{{ item }}" dest=/root
   environment: "{{ proxy_env }}"
   with_items:
-    - http://hyper-imaged-dev.s3.amazonaws.com/qemu-hyper-2.4.1-2.el7.centos.x86_64.rpm
-    - http://hyper-imaged-dev.s3.amazonaws.com/imaged-0.5.0-1.el7.centos.x86_64.rpm
+    - http://hyper-upload.s3.amazonaws.com/hyper-imaged-dev/qemu-hyper-2.4.1-3.el7.centos.x86_64.rpm
+    - http://hyper-upload.s3.amazonaws.com/hyper-imaged-dev/imaged-0.5.0-1.el7.centos.x86_64.rpm
 - name: install image-service
   yum:
     name: "{{ item }}"
     state: present
   with_items:
-    - /root/qemu-hyper-2.4.1-2.el7.centos.x86_64.rpm
+    - /root/qemu-hyper-2.4.1-3.el7.centos.x86_64.rpm
     - /root/imaged-0.5.0-1.el7.centos.x86_64.rpm
 
 ###### start image-service ######

@@ -46,7 +46,7 @@
   sudo: yes
   command: systemctl daemon-reload
 - name: start sslocal service
-  service: name=sslocal state=started enabled=yes
+  service: name=sslocal state=restarted enabled=yes
 
 ###### start privoxy service(socks5 proxy -> http proxy) ######
 #privoxy need restart first_time
@@ -59,7 +59,7 @@
   notify:
     - restart-privoxy
 - name: start privoxy service
-  service: name=privoxy state=started enabled=yes
+  service: name=privoxy state=restarted enabled=yes
 
 
 #disable firewalld
