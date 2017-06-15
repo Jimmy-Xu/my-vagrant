@@ -213,3 +213,29 @@ $ sudo service imaged status
 
 - [Test with image-cli](https://github.com/getdvm/image-service#test-with-image-cli)
 - [Test with restful api](https://github.com/getdvm/image-service#test-with-restful-api)
+
+# FAQ
+
+## yum install python-urllib3 failed
+
+```
+//Error message
+Failed:
+  python-urllib3.noarch 0:1.10.2-2.el7_1
+
+//Solution:
+sudo pip uninstall urllib3
+sudo yum install python-urllib3
+```
+
+## docker-py not found when start docker container
+```
+//Error message
+TASK [mongo : start mongo container] *******************************************
+15/06/2017 23:41:38  INFO interface: detail: fatal: [default]: FAILED! => {"changed": false, "failed": true, "msg": "`docker-py` doesn't seem to be installed, but is required for the Ansible Docker module."}
+
+//Solution:
+sudo pip uninstall urllib3
+sudo yum install python-urllib3
+pip install docker-py
+```

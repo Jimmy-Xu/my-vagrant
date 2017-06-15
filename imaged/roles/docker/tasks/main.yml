@@ -34,3 +34,4 @@
   pip:
     name: docker-py
     state: present
+    version: 1.10.6

@@ -32,6 +32,18 @@
     - jq
     - iptables
 
+- name: upgrade pip self
+  shell: pip install --upgrade pip
+
+# - name: uninstall urllib3 via pip
+#   pip:
+#     name: urllib3
+#     state: absent
+- name: install python-urllib3
+  yum:
+    name=python-urllib3
+    state=present
+
 ###### start shadowsocks sslcoal service(socks5 proxy) ######
 #shadowsocks need restart first_time
 - name: install shadowsocks
