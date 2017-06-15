@@ -1,6 +1,7 @@
 ---
 - hosts: all
-  sudo: true
+  become: true
+  become_user: root
   vars:
     proxy_env:
       http_proxy: http://127.0.0.1:8118

@@ -1,6 +1,29 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+##############################
+# Add timestamp to debug log
+##############################
+$out_file = File.new('debug.log', 'w')
+def $stdout.write string
+    log_datas=string
+    if log_datas.gsub(/\r?\n/, "") != ''
+        log_datas=::Time.now.strftime("%d/%m/%Y %T")+" "+log_datas.gsub(/\r\n/, "\n")
+    end
+    super log_datas
+    $out_file.write log_datas
+    $out_file.flush
+end
+def $stderr.write string
+    log_datas=string
+    if log_datas.gsub(/\r?\n/, "") != ''
+        log_datas=::Time.now.strftime("%d/%m/%Y %T")+" "+log_datas.gsub(/\r\n/, "\n")
+    end
+    super log_datas
+    $out_file.write log_datas
+    $out_file.flush
+end
+
 require 'yaml'
 VAGRANTFILE_API_VERSION = '2'
 
@@ -59,7 +82,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # information on available options.
   # Libvirt
   config.vm.provider :libvirt do |lv|
+    ######################################
+    # cpu number, memory, vnc listen port
+    ######################################
+    lv.cpus = 2
     lv.memory = 2048
+    lv.graphics_ip = '0.0.0.0'
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies

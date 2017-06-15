@@ -6,21 +6,28 @@
   yum:
     name: docker-engine
     state: present
-- name: config docker
-  copy: src=etc/sysconfig/docker dest=/etc/sysconfig/docker
-- name: install unit file for docker service
-  copy: src=usr/lib/systemd/system/docker.service dest=/usr/lib/systemd/system/docker.service
+
+- name: add user to docker group
+  user: name=vagrant comment="default user" group=docker
+
+- name: start docker service
+  service: name=docker state=started enabled=yes
+
+- name: ensure dir /etc/systemd/system/docker.service.d
+  file: path=/etc/systemd/system/docker.service.d state=directory mode=0755
+
+- name: config for docker service
+  copy: src=etc/systemd/system/docker.service.d/dockeropt.conf dest=/etc/systemd/system/docker.service.d/dockeropt.conf
   register: docker_systemd_config
   notify:
     - reload-systemd
     - restart-docker
-- name: ensure systemd is reloaded if docker.service has changed
-  shell: systemctl daemon-reload
+
+- name: ensure systemd is reloaded if dockeropt.conf has changed
   when: docker_systemd_config.changed
-- name: start docker service
-  service: name=docker state=started enabled=yes
-- name: add user to docker group
-  user: name=vagrant comment="default user" group=docker
+  shell: |
+    systemctl daemon-reload
+    systemctl restart docker
 
 # ansible docker module required
 - name: install docker-py

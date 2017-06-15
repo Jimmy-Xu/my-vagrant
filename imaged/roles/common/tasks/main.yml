@@ -1,4 +1,11 @@
 ---
+- name: solve ssh slow
+  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
+  register: ssh_config
+- name: restart sshd if sshd_config has changed
+  when: ssh_config.changed
+  shell: service sshd restart
+
 - name: check CentOS-Base.repo
   stat: path=/etc/yum.repos.d/CentOS-Base.repo.backup
   register: orig_centos_base_repo
@@ -11,6 +18,7 @@
   yum:
     name: epel-release
     state: present
+
 - name: install common package
   yum:
     name: "{{ item }}"
@@ -43,7 +51,6 @@
     - reload-systemd
     - restart-sslocal
 - name: reload-systemd
-  sudo: yes
   command: systemctl daemon-reload
 - name: start sslocal service
   service: name=sslocal state=restarted enabled=yes

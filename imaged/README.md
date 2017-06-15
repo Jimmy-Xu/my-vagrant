@@ -11,6 +11,7 @@ Run image-service in a VM
 	- [enter vm](#enter-vm)
 		- [enter vm by vagrant](#enter-vm-by-vagrant)
 		- [enter vm by virsh](#enter-vm-by-virsh)
+		- [enter via ssh](#enter-via-ssh)
 	- [check service](#check-service)
 		- [check docker container](#check-docker-container)
 		- [check ceph status](#check-ceph-status)
@@ -113,6 +114,29 @@ $ sudo virsh console imaged_default
   Password:
   Last login: Tue Mar  8 04:33:33 on ttyS0
   [vagrant@localhost ~]$
+```
+
+### enter via ssh
+```
+$ vagrant ssh-config
+15/06/2017 22:31:57 Host default
+  HostName 192.168.121.134
+  User vagrant
+  Port 22
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /home/xjimmy/my-vagrant/imaged/.vagrant/machines/default/libvirt/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+
+$ ssh -i /home/xjimmy/my-vagrant/imaged/.vagrant/machines/default/libvirt/private_key vagrant@192.168.121.134 -p 22
+The authenticity of host '192.168.121.134 (192.168.121.134)' can't be established.
+ECDSA key fingerprint is 41:67:33:e2:2a:7e:07:a9:de:6a:e5:b9:3d:6f:1b:90.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.121.134' (ECDSA) to the list of known hosts.
+Last login: Thu Jun 15 10:20:50 2017 from gateway
+[vagrant@localhost ~]$
 ```
 
 ## check service
