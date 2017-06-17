@@ -223,7 +223,7 @@ $ sudo service imaged status
 Failed:
   python-urllib3.noarch 0:1.10.2-2.el7_1
 
-//Solution:
+//Solution: use python-urllib3
 sudo pip uninstall urllib3
 sudo yum install python-urllib3
 ```
@@ -234,8 +234,20 @@ sudo yum install python-urllib3
 TASK [mongo : start mongo container] *******************************************
 15/06/2017 23:41:38  INFO interface: detail: fatal: [default]: FAILED! => {"changed": false, "failed": true, "msg": "`docker-py` doesn't seem to be installed, but is required for the Ansible Docker module."}
 
-//Solution:
+//Solution: use python-urllib3
 sudo pip uninstall urllib3
 sudo yum install python-urllib3
 pip install docker-py
+```
+
+## start docker container failed
+```
+//Error message
+{"changed": true, "failed": true, "msg": "Docker API Error: {\"message\":\"driver failed programming external connectivity on endpoint imaged-mongo (d492b0fff37ca35f5cff3472bbb739d7c7e7c9c8fb628fce49da138e06367af9):  
+(iptables failed: iptables --wait -t filter -A DOCKER ! -i docker0 -o docker0 -p tcp -d 172.17.0.2 --dport 27017 -j ACCEPT: iptables: No chain/target/match by that name.\\n (exit status 1))\"}"}
+
+//Solution: reinstall docker-engine
+$ sudo yum remove docker-engine
+$ rm -rf /var/lib/docker
+$ sudo yum install -y docker-engine
 ```

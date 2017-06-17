@@ -31,6 +31,7 @@
     - git
     - jq
     - iptables
+    - iptables-services
 
 - name: upgrade pip self
   shell: pip install --upgrade pip
@@ -87,6 +88,12 @@
     name: firewalld
     state: stopped
     enabled: no
+
+- name: start iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: yes
 
 #check iptables
 - name: check iptables

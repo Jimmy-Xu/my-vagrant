@@ -12,15 +12,27 @@
   shell: docker images | grep 'ceph.*demo' | wc -l
   register: ceph_image
 - debug: msg={{ ceph_image.stdout }}
+
 - name: pull ceph image
   command: docker pull ceph/demo
   when: ceph_image.stdout != "1"
 
 ###### start ceph server in container ######
-- git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master
+- git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master force=yes
   environment: "{{ proxy_env }}"
+- name: copy Dockerfile
+  copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile
+
+- debug: msg={{ ansible_eth0.ipv4.address }}
 - name: build xjimmyshcn/ceph image
-  docker_image: path="/home/vagrant/learn-ceph/" name="xjimmyshcn/ceph" state=present
+  docker_image:
+    path: "/home/vagrant/learn-ceph/"
+    name: "xjimmyshcn/ceph"
+    state: present
+    buildargs:
+      http_proxy: http://{{ ansible_eth0.ipv4.address }}:8118
+      https_proxy: https://{{ ansible_eth0.ipv4.address }}:8118
+
 - name: get the network prefix
   shell: ip route | grep eth0 | grep -v default | awk '{print $1}'
   register: network_prefix
