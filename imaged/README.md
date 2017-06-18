@@ -246,8 +246,11 @@ pip install docker-py
 {"changed": true, "failed": true, "msg": "Docker API Error: {\"message\":\"driver failed programming external connectivity on endpoint imaged-mongo (d492b0fff37ca35f5cff3472bbb739d7c7e7c9c8fb628fce49da138e06367af9):  
 (iptables failed: iptables --wait -t filter -A DOCKER ! -i docker0 -o docker0 -p tcp -d 172.17.0.2 --dport 27017 -j ACCEPT: iptables: No chain/target/match by that name.\\n (exit status 1))\"}"}
 
-//Solution: reinstall docker-engine
+//Solution: reinstall docker-engine or restart docker
+http://www.cnblogs.com/flasheryu/p/5919657.html
 $ sudo yum remove docker-engine
 $ rm -rf /var/lib/docker
 $ sudo yum install -y docker-engine
+
+$ service docker restart
 ```

@@ -19,11 +19,14 @@
   when: mongo_image.stdout != "1"
 
 ###### start mongo server in container ######
+- name: restart docker service
+  service: name=docker state=restarted
 - name: start mongo container
   docker:
     name: imaged-mongo
     image: mongo:3.2.3
     state: started
+    restart_policy: always
     volumes:
       - /var/lib/imaged/mongo:/data/db
     ports:

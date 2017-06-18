@@ -44,6 +44,7 @@
     state: started
     net: host
     privileged: yes
+    restart_policy: always
     volumes:
       - /etc/ceph:/etc/ceph
       - /var/log/ceph:/var/log/ceph
