@@ -54,6 +54,14 @@
     env:
       MON_IP: "{{ ansible_eth0.ipv4.address }}"
       CEPH_NETWORK: "{{ network_prefix.stdout }}"
+
+#modify ceph.conf (fix: https://github.com/ceph/ceph-cookbook/issues/187)
+- name: update ceph.conf for ext4
+  shell: |
+    grep osd_max_object_name_len /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_name_len = 256' /etc/ceph/ceph.conf
+    grep osd_max_object_namespace_len  /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_namespace_len  = 64' /etc/ceph/ceph.conf
+    docker restart ceph-demo
+
 #create ceph pool 'hyper'
 - name: check pool
   shell: ceph osd pool ls | grep hyper | wc -l

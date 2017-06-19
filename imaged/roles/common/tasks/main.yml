@@ -33,6 +33,9 @@
     - iptables
     - iptables-services
 
+- name: git config
+  copy: src=git/gitconfig dest=/home/vagrant/.gitconfig
+
 - name: upgrade pip self
   shell: pip install --upgrade pip
 
@@ -123,3 +126,14 @@
     dest: /etc/security/limits.conf
   tags:
     - generate-etc_security_limits_conf
+
+#install golang
+- name: download golang
+  shell: |
+    cd /home/vagrant
+    wget -c https://storage.googleapis.com/golang/go1.7.6.linux-amd64.tar.gz
+    tar xzvf go1.7.6.linux-amd64.tar.gz
+    grep "^export GOROOT=" /home/vagrant/.bashrc > /dev/null ||  echo "export GOROOT=/home/vagrant/go" >> /home/vagrant/.bashrc
+    grep "^export GOPATH=" /home/vagrant/.bashrc > /dev/null ||  echo "export GOPATH=/home/vagrant/gopath" >> /home/vagrant/.bashrc
+    grep "^export PATH=\${GOROOT}" /home/vagrant/.bashrc > /dev/null || echo "export PATH=\${GOROOT}/bin:\${GOPATH}/bin:\${PATH}" >> /home/vagrant/.bashrc
+    chown vagrant. /home/vagrant -R

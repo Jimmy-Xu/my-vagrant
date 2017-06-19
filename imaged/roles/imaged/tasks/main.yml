@@ -1,4 +1,20 @@
 ---
+- name: install dependency package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libvirt-devel
+    - librados2-devel
+    - librbd1-devel
+    - device-mapper-devel
+    - automake
+    - gcc
+    - wget
+    - time
+    - git
+    - gdb
+
 ###### install image service ######
 - name: check image-service RPM
   stat: path=/root/imaged-0.5.0-1.el7.centos.x86_64.rpm
@@ -26,3 +42,33 @@
     name: imaged
     state: started
     enabled: yes
+
+###### clone image-service ######
+- name: create dir for image-service
+  file: path=/home/vagrant/gopath/src/github.com/getdvm state=directory mode=0755
+- name: copy key for clone image-service
+  copy:
+    src: key/github-key.pem
+    dest: /home/vagrant/.ssh/github-key.pem
+    owner: vagrant
+    group: vagrant
+    mode: 0400
+- git:
+    repo: git@github.com:Jimmy-Xu/image-service.git
+    dest: /home/vagrant/gopath/src/github.com/getdvm/image-service
+    accept_hostkey: yes
+    version: master
+    force: yes
+    key_file: /home/vagrant/.ssh/github-key.pem
+  become: yes
+  become_user: vagrant
+  environment: "{{ proxy_env }}"
+
+- name: install govendor
+  shell: su - vagrant -c "go get github.com/kardianos/govendor"
+
+#[to debug imaged]: sudo gdb --args ./imaged --nondaemon --log_dir=/var/log/imaged -v=4 --host=tcp://0.0.0.0:23451
+- name: copy .gdbinit for gdb
+  copy:
+    src: gdb/gdbinit
+    dest: /root/.gdbinit

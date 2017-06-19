@@ -1,0 +1,20 @@
+[core]
+        autocrlf = input
+        trustctime = false
+        filemode = false
+[color]
+        ui = true
+        status = auto
+        diff = auto
+        branch = auto
+        interactive = auto
+[alias]
+        st = status
+        ci = commit
+        co = checkout
+        br = branch
+        sr = show-ref
+        cm = "!sh -c \"br_name=`git symbolic-ref HEAD|sed s#refs/heads/##`; git commit -em \\\"[\\${br_name}] \\\"\""
+        lg = log --graph --pretty=format:'[%ci] %Cgreen(%cr) %Cred%h%Creset -%x09%C(yellow)%Creset %C(cyan)[%an]%Creset %x09 %s' --abbrev-commit --date=short
+[push]
+        default = current
