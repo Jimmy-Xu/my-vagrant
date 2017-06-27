@@ -33,6 +33,7 @@
       http_proxy: http://{{ ansible_eth0.ipv4.address }}:8118
       https_proxy: https://{{ ansible_eth0.ipv4.address }}:8118
 
+# if container ceph-demo's status is alwyas 'Restarting', then check the 'public network' and 'cluster network' in /etc/ceph.conf
 - name: get the network prefix
   shell: ip route | grep eth0 | grep -v default | awk '{print $1}'
   register: network_prefix
@@ -56,10 +57,12 @@
       CEPH_NETWORK: "{{ network_prefix.stdout }}"
 
 #modify ceph.conf (fix: https://github.com/ceph/ceph-cookbook/issues/187)
+# mon_pg_warn_max_per_osd: fix warn "too many PGs per OSD"
 - name: update ceph.conf for ext4
   shell: |
     grep osd_max_object_name_len /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_name_len = 256' /etc/ceph/ceph.conf
     grep osd_max_object_namespace_len  /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_namespace_len  = 64' /etc/ceph/ceph.conf
+    grep mon_pg_warn_max_per_osd /etc/ceph/ceph.conf || sed -i '/\[global\]/a\mon_pg_warn_max_per_osd = 1000' /etc/ceph/ceph.conf
     docker restart ceph-demo
 
 #create ceph pool 'hyper'
