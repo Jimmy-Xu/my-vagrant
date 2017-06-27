@@ -89,6 +89,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Enable KVM nested virtualization
     lv.nested = true
     lv.graphics_ip = '0.0.0.0'
+
+    ######################################################################################
+    ## create storage pool
+    # sudo mkdir /var/lib/libvirt/hypernetes
+    # sudo virsh pool-create-as hypernetes --type dir --target /var/lib/libvirt/hypernetes
+    # sudo virsh pool-list
+    ######################################################################################
+    lv.storage_pool_name = "hypernetes"
+    # add disk(run `vagrant reload` after add disk, stored in /var/lib/libvirt/images)
+    lv.storage :file, :device => "sdb", :path => "hypernetes_sdb.disk", :size => '40G', :bus => "virtio"
+    lv.storage :file, :device => "sdc", :path => "hypernetes_sdc.disk", :size => '60G', :bus => "virtio"
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies

@@ -14,11 +14,14 @@
     name: /root/deps/rdo-release.rpm
     state: present
 
-#install openstack-packstack
-- name: install openstack-packstack
+# install dependency package
+- name: install dependency package
   yum:
-    name: openstack-packstack
+    name: "{{ item }}"
     state: present
+  with_items:
+    - memcached
+    - openstack-packstack
 
 #generate my_answer.txt
 - name: generate my_answer.txt
@@ -28,16 +31,6 @@
   tags:
    - generate-my_answer.txt
 
-# config yum
-- name: copy fastestmirror.conf
-  copy:
-    src: etc/yum/pluginconf.d/fastestmirror.conf
-    dest: /etc/yum/pluginconf.d/fastestmirror.conf
-- name: copy yum.conf
-  copy:
-    src: etc/yum.conf
-    dest: /etc/yum.conf
-
 # disable NetworkManager
 - name: stop NetworkManager service
   service:
@@ -45,21 +38,26 @@
     state: stopped
     enabled: false
 
-# install dependency package
-- name: install dependency package
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - memcached
+
+# - name: check if openstack-nova-compute is already installed
+#   shell: rpm -q openstack-nova-compute
+#   ignore_errors: yes
+#   register: st
 
 #run install openstack(logfile: /var/tmp/packstack/latest/openstack-setup.log, longtime to install)
-# run yum remove -y mariadb-server if packstack install failed
-- name: run packstack
-  shell: ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (proxychains4 -q packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
+# run 'yum remove -y mariadb-server' if packstack install failed
+# run `tail -f /var/tmp/packstack/latest/openstack-setup.log` to view log
+- name: run packstack if '/root/deps/packstack.ok' not exist
+  shell: ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
   args:
     creates: /root/deps/packstack.ok
-  #environment: "{{proxy_env}}"
+  # when: st | failed
+  environment: "{{proxy_env}}"
+
+- name: install sshpass
+  yum:
+    name: sshpass
+    state: present
 
 #install oslo.i18n(fix "ImportError: cannot import name _lazy")
 - name: install oslo.i18n

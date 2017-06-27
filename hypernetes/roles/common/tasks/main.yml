@@ -5,6 +5,8 @@
 - name: restart sshd if sshd_config has changed
   when: ssh_config.changed
   shell: service sshd restart
+- name: solve eth0 has no ip
+  shell: (ps -ef | grep dhclient) && echo "dhclient is running" || dhclient
 
 ###### install common package ######
 #add 163 yum repo
@@ -17,6 +19,16 @@
   copy:
     src: etc/yum.repos.d/CentOS7-Base-163.repo
     dest: /etc/yum.repos.d/CentOS-Base.repo
+
+# config yum(fix: Failed to connect to 2605:9000:401:102::2: Network is unreachable\"\nhttp://mirror.centos.org/centos/7/cloud/x86_64/openstack-liberty/repodata/repomd.xml)
+- name: copy fastestmirror.conf
+  copy:
+    src: etc/yum/pluginconf.d/fastestmirror.conf
+    dest: /etc/yum/pluginconf.d/fastestmirror.conf
+- name: copy yum.conf
+  copy:
+    src: etc/yum.conf
+    dest: /etc/yum.conf
 
 # add epel yum repo
 - name: install epel-release
@@ -42,6 +54,11 @@
     - autoconf
     - iptables
     - iptables-services
+    - libvirt
+    - psmisc
+
+- name: upgrade pip
+  shell: pip install --upgrade pip
 
 #disable firewalld
 - name: disalbe firewalld service
@@ -141,12 +158,41 @@
     src: usr/local/etc/proxychains.conf
     dest: /usr/local/etc/proxychains.conf
 
+##### mount disk #####
+- name: create a xfs filesystem on /dev/vdb and /dev/vdc.
+  filesystem:
+    fstype: xfs
+    dev: "{{ item }}"
+  with_items:
+    - /dev/vdb
+    - /dev/vdc
+- name: ensure mount point /mnt/vdb and /mnt/vdc
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /mnt/vdb
+    - /mnt/vdc
+- name: mount device(/dev/vdb)
+  mount:
+    path: /mnt/vdb
+    src: /dev/vdb
+    fstype: xfs
+    state: mounted # add to /etc/fstab + mount
+- name: mount device(/dev/vdc)
+  mount:
+    path: /mnt/vdc
+    src: /dev/vdc
+    fstype: xfs
+    state: mounted
 
 ###### init ######
 - name: generate h8s_deploy_env
   shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth0'\nIF_IP='{{ ansible_eth0.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
   args:
     creates: /root/h8s_deploy_env
+
 
 # # set ssh
 # - file: path=/root/.ssh state=directory mode=0755

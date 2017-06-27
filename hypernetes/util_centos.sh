@@ -389,10 +389,7 @@ sleep 3
       ;;
   esac
 
-  vagrant up --debug --no-provision --provider=${PROVIDER}
-  #vagrant up --no-provision --provider=${PROVIDER}
-  sleep 1
-  VAGRANT_LOG=info vagrant provision
+  VAGRANT_LOG=info vagrant up --provision --provider=${PROVIDER}
 }
 
 function destroy_all(){
