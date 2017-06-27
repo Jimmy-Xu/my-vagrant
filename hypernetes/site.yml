@@ -10,10 +10,10 @@
   roles:
     # - common
     # - base_setup
-    # - docker
+    - docker
     # - openstack
     # - ceph
     # - cinder
     # - hyper
-    - kubestack
-    # - kubenetes
+    # - kubestack
+    - kubenetes

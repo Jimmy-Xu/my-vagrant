@@ -4,7 +4,7 @@
   copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
 - name: install docker
   yum:
-    name: docker-engine
+    name: docker-1.12.6
     state: present
 
 - name: add user to docker group
