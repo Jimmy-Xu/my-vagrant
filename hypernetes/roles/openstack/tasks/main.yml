@@ -28,11 +28,38 @@
   tags:
    - generate-my_answer.txt
 
+# config yum
+- name: copy fastestmirror.conf
+  copy:
+    src: etc/yum/pluginconf.d/fastestmirror.conf
+    dest: /etc/yum/pluginconf.d/fastestmirror.conf
+- name: copy yum.conf
+  copy:
+    src: etc/yum.conf
+    dest: /etc/yum.conf
+
+# disable NetworkManager
+- name: stop NetworkManager service
+  service:
+    name: NetworkManager
+    state: stopped
+    enabled: false
+
+# install dependency package
+- name: install dependency package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - memcached
+
 #run install openstack(logfile: /var/tmp/packstack/latest/openstack-setup.log, longtime to install)
+# run yum remove -y mariadb-server if packstack install failed
 - name: run packstack
-  shell: packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
+  shell: ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (proxychains4 -q packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
   args:
     creates: /root/deps/packstack.ok
+  #environment: "{{proxy_env}}"
 
 #install oslo.i18n(fix "ImportError: cannot import name _lazy")
 - name: install oslo.i18n

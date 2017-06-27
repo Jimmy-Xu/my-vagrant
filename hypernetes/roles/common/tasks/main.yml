@@ -1,4 +1,11 @@
 ---
+- name: solve ssh slow
+  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
+  register: ssh_config
+- name: restart sshd if sshd_config has changed
+  when: ssh_config.changed
+  shell: service sshd restart
+
 ###### install common package ######
 #add 163 yum repo
 - name: backup CentOS-Base.repo
@@ -30,6 +37,33 @@
     - net-tools
     - python-pip
     - git
+    - gcc
+    - automake
+    - autoconf
+    - iptables
+    - iptables-services
+
+#disable firewalld
+- name: disalbe firewalld service
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+#start iptables
+- name: start iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: yes
+
+#check iptables
+- name: check iptables
+  shell: iptables -F && iptables -X
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
 
 ###### start shadowsocks sslcoal service(socks5 proxy) ######
 - name: install shadowsocks
@@ -87,6 +121,26 @@
     dest: /etc/privoxy/config
   notify:
     - restart-privoxy
+
+###### proxychains-ng(use proxy for any command) ######
+- name: install proxychains-ng
+  git:
+    repo: https://github.com/rofl0r/proxychains-ng.git
+    dest: /root/proxychains-ng
+    version: master
+    accept_hostkey: yes
+  environment: "{{ proxy_env }}"
+- name: build proxychains-ng
+  shell: ./configure –prefix=/usr –sysconfdir=/etc && make && make install && ln -s /usr/local/bin/proxychains4 /bin/proxychains4
+  args:
+    chdir: /root/proxychains-ng/
+    creates: /bin/proxychains4
+
+- name: config proxychains-ng
+  copy:
+    src: usr/local/etc/proxychains.conf
+    dest: /usr/local/etc/proxychains.conf
+
 
 ###### init ######
 - name: generate h8s_deploy_env

@@ -70,6 +70,8 @@
     - generate-etc_sysctl_conf
 - name: load bridge module
   command: modprobe bridge
+- name: load br_netfilter module
+  command: modprobe br_netfilter
 - name: check sysctl
   command: sysctl -p
 
