@@ -1,73 +1,72 @@
 ---
-# install ceph-release.rpm
-- name: copy ceph-release.rpm
-  copy:
-    src: rpm/ceph-release-1-1.el7.noarch.rpm
-    dest: /root/deps/ceph-release.rpm
-- name: install ceph-release.rpm
+###### install ceph client ######
+- name: add ceph yum repo
+  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
+- name: install ceph client
   yum:
-    name: /root/deps/ceph-release.rpm
+    name: ceph-common
     state: present
 
-- name: install ceph-deploy
-  yum:
-    name: ceph-deploy
+# pull ceph image
+- name: check ceph image 'ceph/demo:tag-build-master-jewel-ubuntu-16.04'
+  shell: docker images | grep 'ceph.*demo.*jewel' | wc -l
+  register: ceph_image
+- debug: msg={{ ceph_image.stdout }}
+
+- name: pull ceph image 'ceph/demo:tag-build-master-jewel-ubuntu-16.04'
+  command: docker pull ceph/demo:tag-build-master-jewel-ubuntu-16.04
+  when: ceph_image.stdout != "1"
+
+###### start ceph server in container ######
+- git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master force=yes
+  environment: "{{ proxy_env }}"
+- name: copy Dockerfile
+  copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile
+
+- debug: msg={{ ansible_eth0.ipv4.address }}
+- name: build xjimmyshcn/ceph image
+  docker_image:
+    path: "/home/vagrant/learn-ceph/"
+    name: "xjimmyshcn/ceph"
     state: present
+    buildargs:
+      http_proxy: http://{{ ansible_eth0.ipv4.address }}:8118
+      https_proxy: https://{{ ansible_eth0.ipv4.address }}:8118
 
+- name: get the network prefix
+  shell: ip route | grep eth0 | grep -v default | awk '{print $1}'
+  register: network_prefix
+- debug: msg={{ network_prefix.stdout }}
+- name: start ceph container
+  docker:
+    name: ceph-demo
+    image: xjimmyshcn/ceph
+    state: started
+    net: host
+    privileged: yes
+    restart_policy: always
+    volumes:
+      - /etc/ceph:/etc/ceph
+      - /mnt/vdc/var/log/ceph:/var/log/ceph
+      - /mnt/vdc/var/lib/ceph:/var/lib/ceph
+      - /dev:/dev
+      - /sys:/sys
+    env:
+      MON_IP: "{{ ansible_eth0.ipv4.address }}"
+      CEPH_NETWORK: "{{ network_prefix.stdout }}"
 
-- name: create dir /root/ceph-deploy
-  file:
-    path: /root/ceph-deploy
-    state: directory
-    mode: 0755
+#modify ceph.conf (fix: https://github.com/ceph/ceph-cookbook/issues/187)
+- name: update ceph.conf for ext4
+  shell: |
+    grep osd_max_object_name_len /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_name_len = 256' /etc/ceph/ceph.conf
+    grep osd_max_object_namespace_len  /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_namespace_len  = 64' /etc/ceph/ceph.conf
+    docker restart ceph-demo
 
-- debug: msg={{ h8s_hostname }}
-
-# ceph-deploy new
-- name: run ceph-deploy new
-  shell: rm -rf /root/ceph-cluster && mkdir -p /root/ceph-cluster && cd /root/ceph-cluster && ceph-deploy new {{ h8s_hostname }} && echo "osd pool default size = 1" >> ceph.conf && touch /root/ceph-deploy/ceph-deploy-new.ok
-  args:
-    creates: /root/ceph-deploy/ceph-deploy-new.ok
-
-# ceph-deploy install
-- name: run ceph-deploy install
-  shell: rm -rf /etc/ceph /var/lib/ceph && mkdir -p /etc/ceph /var/lib/ceph && ceph-deploy install {{ h8s_hostname }} && touch /root/ceph-deploy/ceph-deploy-install.ok
-  args:
-    chdir: /root/ceph-cluster
-    creates: /root/ceph-deploy/ceph-deploy-install.ok
-
-# mon init
-- name: mon init
-  shell: ceph-deploy --overwrite-conf mon create-initial && touch /root/ceph-deploy/ceph-deploy-mon-init.ok
-  args:
-    chdir: /root/ceph-cluster
-    creates: /root/ceph-deploy/ceph-deploy-mon-init.ok
-
-- name: update mon_pg_warn_max_per_osd in ceph.conf
-  lineinfile:
-    dest: /etc/ceph/ceph.conf
-    regexp: '^mon_pg_warn_max_per_osd ='
-    line: mon_pg_warn_max_per_osd = {{ ceph_mon_pg_warn_max_per_osd }}
-    state: present
-    create: True
-    insertafter: '^[global]'
-
-- name: ensure owner of /var/lib/ceph/mon/ceph-h8s-single/store.db is ceph
-  file:
-    path: /var/lib/ceph/mon/ceph-h8s-single/store.db
-    owner: ceph
-    group: ceph
-
-# osd1
-- name: deploy osd1
-  shell: rm -rf /var/local/osd1 /var/lib/ceph/osd && mkdir -p /var/local/osd1 /var/lib/ceph/osd && ceph-deploy --overwrite-conf osd prepare {{ h8s_hostname }}:/var/local/osd1 &&  chown ceph:ceph /var/local/osd1 -R && ceph-deploy osd activate {{ h8s_hostname }}:/var/local/osd1  && touch /root/ceph-deploy/ceph-deploy-osd1.ok
-  args:
-    chdir: /root/ceph-cluster
-    creates: /root/ceph-deploy/ceph-deploy-osd1.ok
-
-# admin
-- name: deploy admin
-  shell: ceph-deploy admin {{ h8s_hostname }}  && touch /root/ceph-deploy/ceph-deploy-admin.ok
-  args:
-    chdir: /root/ceph-cluster
-    creates: /root/ceph-deploy/ceph-deploy-admin.ok
+#create ceph pool 'hyper'
+- name: check pool
+  shell: ceph osd pool ls | grep hyper | wc -l
+  register: hyper_pool
+- debug: msg={{ hyper_pool.stdout }}
+- name: create ceph pool 'hyper'
+  shell: ceph osd pool create hyper 64
+  when: hyper_pool.stdout == "0"
