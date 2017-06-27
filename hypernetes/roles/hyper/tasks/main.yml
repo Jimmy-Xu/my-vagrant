@@ -7,7 +7,7 @@
     mode: 0755
 - name: download hyper rpm
   get_url:
-    url: "http://s3.amazonaws.com/hyper-install/{{ item.name }}"
+    url: "http://mirror-hyper-install.s3.amazonaws.com/0.5/{{ item.name }}"
     dest: "{{ rpm_hyper }}"
     checksum: "{{ item.checksum }}"
   with_items:
