@@ -9,4 +9,4 @@ ansible_python_interpreter: "/bin/env python"
 go_install_dir: /usr/local
 go_root: /usr/local/go
 go_path: /root/gopath
-go_version: 1.5.3
+go_version: 1.7.6

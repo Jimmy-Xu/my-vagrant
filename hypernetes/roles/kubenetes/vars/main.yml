@@ -1,4 +1,4 @@
 docker_network_options: '--host=tcp://127.0.0.1:23456 --host=unix:///var/run/docker.sock'
-k8s_bin_url: http://k8s-bin-dev.s3.amazonaws.com/k8s-bin-20160315-1.1.8.tar.gz
+k8s_bin_url: http://hyper-upload.s3.amazonaws.com/k8s-bin-dev/k8s-bin-20160315-1.1.8.tar.gz
 
 etcd_listen_client_urls: http://{{ ansible_eth0.ipv4.address }}:2379

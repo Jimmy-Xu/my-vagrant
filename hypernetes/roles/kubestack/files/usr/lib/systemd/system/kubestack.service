@@ -6,7 +6,7 @@ Requires=openvswitch.service
 [Service]
 ExecStart=/usr/local/bin/kubestack \
   -logtostderr=false -v=4 \
-  -group=kube \
+  -port=127.0.0.1:4237 \
   -log_dir=/var/log/kubestack \
   -conf=/etc/kubestack.conf
 Restart=on-failure

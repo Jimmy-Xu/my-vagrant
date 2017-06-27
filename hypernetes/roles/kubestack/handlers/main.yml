@@ -1,0 +1,9 @@
+---
+- name: reload-systemd
+  sudo: yes
+  command: systemctl daemon-reload
+
+- name: restart-kubestack
+  service:
+    name: kubestack
+    state: restarted

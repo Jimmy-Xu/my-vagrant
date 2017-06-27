@@ -15,14 +15,14 @@
 
 # get kubestack source code
 - name: go get kubestack
-  shell: . $HOME/.profile && go get github.com/hyperhq/kubestack
+  shell: . $HOME/.bashrc && go get github.com/hyperhq/kubestack
   environment: "{{ proxy_env }}"
   args:
     creates: "{{ go_path }}/src/github.com/hyperhq/kubestack"
 
 # install kubestack
 - name: build and install kubestack
-  shell: . $HOME/.profile && make && make install
+  shell: . $HOME/.bashrc && make && make install
   args:
     chdir: "{{ go_path }}/src/github.com/hyperhq/kubestack"
 
@@ -55,6 +55,9 @@
   copy:
     src: usr/lib/systemd/system/kubestack.service
     dest: /usr/lib/systemd/system/kubestack.service
+  notify:
+    - reload-systemd
+    - restart-kubestack
 
 # ensure dir
 - name: create dir /var/log/kubestack
