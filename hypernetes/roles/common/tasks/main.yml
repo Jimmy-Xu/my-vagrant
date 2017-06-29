@@ -251,7 +251,7 @@
 
 ###### init ######
 - name: generate h8s_deploy_env
-  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth0'\nIF_IP='{{ ansible_eth1.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
+  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth1'\nIF_IP='{{ ansible_eth1.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
   args:
     creates: /root/h8s_deploy_env
 

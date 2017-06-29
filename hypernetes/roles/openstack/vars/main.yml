@@ -1,4 +1,4 @@
-config_nova_network_pubif: eth0
+config_nova_network_pubif: eth1
 config_provision_demo: n
 config_swift_install: n
 config_neutron_metering_agent_install: y
