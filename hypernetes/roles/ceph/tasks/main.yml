@@ -7,6 +7,12 @@
     name: ceph-common
     state: present
 
+- name: add reset tool for ceph
+  copy:
+    src: tools/reset-ceph.sh
+    dest: /root/reset-ceph.sh
+    mode: "0755"
+
 # pull ceph image
 - name: check ceph image 'ceph/demo:tag-build-master-jewel-ubuntu-16.04'
   shell: docker images | grep 'ceph.*demo.*jewel' | wc -l
@@ -34,7 +40,7 @@
 
 # if container ceph-demo's status is alwyas 'Restarting', then check the 'public network' and 'cluster network' in /etc/ceph.conf
 - name: get the network prefix
-  shell: ip route | grep eth0 | grep -v default | awk '{print $1}'
+  shell: ip route | grep "eth1.*src" | grep -v default | awk '{print $1}'
   register: network_prefix
 - debug: msg={{ network_prefix.stdout }}
 - name: start ceph container
