@@ -24,12 +24,12 @@
 
 ## patch for dhcp
 - name: solve ip lost after dhcp timeout
-  shell: (ps -ef | grep dhclient) && echo 'dhclient is running' || dhclient eth0
+  shell: (ps -ef | grep dhclient | grep -v grep) && echo 'dhclient is running' || dhclient eth0
 - cron:
     name: dhclient crontjob
-    minute: "*/2"
+    minute: "*/1"
     user: root
-    job: "(ps -ef | grep dhclient) && echo 'dhclient is running' || dhclient eth0"
+    job: "/bin/bash -c '(ps -ef | grep dhclient | grep -v grep) && echo dhclient is running || /sbin/dhclient eth0'"
     cron_file: ansible_dhclient-autorenew
 
 #disable selinux
@@ -38,14 +38,14 @@
 
 ###########################################################
 ## config yum repo (only once)
-- name: backup original CentOS-Base.repo
-  shell: cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
-  args:
-    creates: /etc/yum.repos.d/CentOS-Base.repo.bak
-- name: set yum repo to mirror.tuna.tsinghua.edu.cn
-  copy:
-    src: etc/yum.repos.d/CentOS-Base.repo
-    dest: /etc/yum.repos.d/CentOS-Base.repo
+# - name: backup original CentOS-Base.repo
+#   shell: cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+#   args:
+#     creates: /etc/yum.repos.d/CentOS-Base.repo.bak
+# - name: set yum repo to mirror.tuna.tsinghua.edu.cn
+#   copy:
+#     src: etc/yum.repos.d/CentOS-Base.repo
+#     dest: /etc/yum.repos.d/CentOS-Base.repo
 - name: clean and make cache for yum once
   shell: yum clean all && yum makecache && touch /root/yum.cached
   args:
@@ -53,10 +53,16 @@
 
 
 # add epel yum repo
-- name: install epel-release
+- name: install basic package
   yum:
-    name: epel-release
+    name: "{{ item }}"
     state: present
+  with_items:
+    - epel-release
+    - git
+    - gcc
+    - automake
+    - autoconf
 
 - name: create /etc/yum.repos.d/bak dir
   file:
@@ -192,10 +198,6 @@
     - wget
     - tree
     - net-tools
-    - git
-    - gcc
-    - automake
-    - autoconf
     - psmisc
 
 ## install libvirt

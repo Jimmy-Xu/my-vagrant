@@ -3,19 +3,34 @@
 - name: add docker yum repo
   copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
 
+# - name: install dependency package for docker
+#   yum:
+#     name: "{{ item }}"
+#     state: present
+#   environment: "{{ proxy_env }}"
+#   with_items:
+#     - libseccomp
+#     - policycoreutils-python
+
+- name: ensure dir /root/deps/docker
+  file: path=/root/deps/docker state=directory mode=0755
+
 - name: download docker
-  shell: wget -c -O /root/deps/{{ item }} http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item }}
+  shell: wget -c -P /root/deps/docker -O "{{ item }}" "http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item }}"
   environment: "{{ proxy_env }}"
   with_items:
     - docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
     - docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
     - docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+    # - container-selinux-2.12-2.gite7096ce.el7.noarch.rpm
+    # - oci-register-machine-0-3.11.gitdd0daef.el7.x86_64.rpm
+    # - oci-systemd-hook-0.1.7-2.git2788078.el7.x86_64.rpm
+    # - skopeo-containers-0.1.19-1.el7.x86_64.rpm
 
-- name: install docker rpm
-  shell: rpm -ivh {{ item }}
-  args:
-    chdir: /root/deps
-    creates: /bin/docker-current
+- name: install docker
+  yum:
+    name: "/root/deps/docker/{{ item }}"
+    state: present
   with_items:
     - docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
     - docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
@@ -31,8 +46,8 @@
   shell: /root/teardown-default-docker0.sh
 
 
-- name: add user to docker group
-  user: name=vagrant comment="default user" group=docker
+# - name: add user to docker group
+#   user: name=vagrant comment="default user" group=docker
 
 - name: start docker service
   service: name=docker state=started enabled=yes

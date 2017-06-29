@@ -66,6 +66,7 @@
 
 - name: update via yum
   shell: yum update -y
+  environment: "{{ proxy_env }}"
 
 
 - name: install openstack-packstack package
