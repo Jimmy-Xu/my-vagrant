@@ -201,11 +201,22 @@
     - libvirt-daemon-driver-qemu
     - libvirt-daemon-driver-storage
 
+
+- name: copy script for virbr0
+  copy: src={{ item }} dest=/root/ mode="0755"
+  with_fileglob:
+    - tools/*
+
+
+# delete default virbr0 (192.168.121.1)
+- name: delete default virbr0
+  shell: /root/destroy-default-virbr0.sh
+
 # config libvirt
 - name: copy libvirt config
   copy:
-    src: usr/share/libvirt/networks/default.xml
-    dest: /usr/share/libvirt/networks/default.xml
+    src: etc/libvirt/qemu/networks/default.xml
+    dest: /etc/libvirt/qemu/networks/default.xml
   notify:
     - restart-libvirtd
 

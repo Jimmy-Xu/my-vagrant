@@ -188,3 +188,58 @@
 
 - name: check openstack status
   shell: openstack-status
+
+################################################################################################
+# == Glance services ==
+# openstack-glance-api:                   active
+# openstack-glance-registry:              active
+# == Keystone service ==
+# openstack-keystone:                     inactive  (disabled on boot)
+# == Horizon service ==
+# openstack-dashboard:                    active
+# == neutron services ==
+# neutron-server:                         active
+# neutron-dhcp-agent:                     active
+# neutron-l3-agent:                       active
+# neutron-metadata-agent:                 inactive  (disabled on boot)
+# neutron-lbaas-agent:                    active
+# neutron-lbaasv2-agent:                  inactive  (disabled on boot)
+# neutron-openvswitch-agent:              active
+# neutron-metering-agent:                 active
+# == Cinder services ==
+# openstack-cinder-api:                   active
+# openstack-cinder-scheduler:             active
+# openstack-cinder-volume:                active
+# openstack-cinder-backup:                inactive  (disabled on boot)
+# == Ceilometer services ==
+# openstack-ceilometer-api:               active
+# openstack-ceilometer-central:           active
+# openstack-ceilometer-compute:           inactive  (disabled on boot)
+# openstack-ceilometer-collector:         active
+# openstack-ceilometer-alarm-notifier:    active
+# openstack-ceilometer-alarm-evaluator:   active
+# openstack-ceilometer-notification:      active
+# == Support services ==
+# mariadb:                                active
+# libvirtd:                               active
+# openvswitch:                            active
+# dbus:                                   active
+# target:                                 active
+# rabbitmq-server:                        active
+# memcached:                              active
+# == Keystone users ==
+# Warning keystonerc not sourced
+################################################################################################
+# openstack-ceilometer-alarm-evaluator.service    loaded active running   OpenStack ceilometer alarm evaluation service
+# openstack-ceilometer-alarm-notifier.service     loaded active running   OpenStack ceilometer alarm notification service
+# openstack-ceilometer-api.service                loaded active running   OpenStack ceilometer API service
+# openstack-ceilometer-central.service            loaded active running   OpenStack ceilometer central agent
+# openstack-ceilometer-collector.service          loaded active running   OpenStack ceilometer collection service
+# openstack-ceilometer-notification.service       loaded active running   OpenStack ceilometer notification agent
+# openstack-cinder-api.service                    loaded active running   OpenStack Cinder API Server
+# openstack-cinder-scheduler.service              loaded active running   OpenStack Cinder Scheduler Server
+# openstack-cinder-volume.service                 loaded active running   OpenStack Cinder Volume Server
+# openstack-glance-api.service                    loaded active running   OpenStack Image Service (code-named Glance) API server
+# openstack-glance-registry.service               loaded active running   OpenStack Image Service (code-named Glance) Registry server
+# openstack-losetup.service                       loaded active exited    Setup cinder-volume loop device
+################################################################################################

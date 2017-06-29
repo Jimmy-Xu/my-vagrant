@@ -7,6 +7,16 @@
     name: docker-engine-1.12.6
     state: present
 
+- name: copy script for docker0
+  copy: src={{ item }} dest=/root/ mode="0755"
+  with_fileglob:
+    - tools/*
+
+# delete default docker0 (192.168.121.1)
+- name: delete default docker0
+  shell: /root/teardown-default-docker0.sh
+
+
 - name: add user to docker group
   user: name=vagrant comment="default user" group=docker
 
