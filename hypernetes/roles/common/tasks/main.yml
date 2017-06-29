@@ -37,7 +37,15 @@
   selinux: state=disabled
 
 ###########################################################
-## update yum cache only once
+## config yum repo (only once)
+- name: backup original CentOS-Base.repo
+  shell: cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+  args:
+    creates: /etc/yum.repos.d/CentOS-Base.repo.bak
+- name: set yum repo to mirror.tuna.tsinghua.edu.cn
+  copy:
+    src: etc/yum.repos.d/CentOS-Base.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo
 - name: clean and make cache for yum once
   shell: yum clean all && yum makecache && touch /root/yum.cached
   args:
