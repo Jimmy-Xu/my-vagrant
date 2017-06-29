@@ -14,14 +14,107 @@
     name: /root/deps/rdo-release.rpm
     state: present
 
-# install dependency package
+
+# - copy: src=tools/uninstall1.sh dest=/root/uninstall1.sh
+# - copy: src=tools/uninstall2.sh dest=/root/uninstall2.sh
+- name: copy uninstall script
+  copy: src={{ item }} dest=/root/ mode="0755"
+  with_fileglob:
+    - tools/*
+
+
+- name: fix yum issue
+  shell: yum-complete-transaction --cleanup-only && yum history redo last -y
+  environment: "{{proxy_env}}"
+
 - name: install dependency package
   yum:
     name: "{{ item }}"
     state: present
+  environment: "{{proxy_env}}"
   with_items:
-    - memcached
+    - bootswatch-fonts
+    - erlang
+    - erlang-gs
+    - fontawesome-fonts
+    - fontawesome-fonts-web
+    - fontconfig
+    - iscsi-initiator-utils-iscsiuio
+    - libXft
+    - mdi-fonts
+    - mod_wsgi
+    - python-XStatic-Font-Awesome
+    - python-ceilometerclient
+    - python-heatclient
+    - python-neutronclient
+    - python-saharaclient
+    - python-troveclient
+    - python2-XStatic-bootswatch
+    - python2-XStatic-mdi
+    - python2-XStatic-roboto-fontface
+    - roboto-fontface-fonts
+    - tk
+
+
+- name: install centos-release-openstack-liberty package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{proxy_env}}"
+  with_items:
+    - centos-release-openstack-liberty
+
+- name: update via yum
+  shell: yum update -y
+
+
+- name: install openstack-packstack package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{proxy_env}}"
+  with_items:
     - openstack-packstack
+
+
+- name: install openstack package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{proxy_env}}"
+  with_items:
+    - fontpackages-filesystem
+    - httpd
+    - iscsi-initiator-utils
+    - memcached
+    - redis
+    - ntp
+    - ntpdate
+    - perl-DBD-MySQL
+    - perl-DBI
+    - puppet
+    - python-cinder
+    - python-cinderclient
+    - python-glance
+    - python-glance-store
+    - python-glanceclient
+    - python-keystone
+    - python-keystoneclient
+    - python-keystonemiddleware
+    - python-memcached
+    - python-novaclient
+    - python-openstackclient
+    - python-swiftclient
+    - python2-django-openstack-auth
+    # - openstack-cinder
+    # - openstack-glance
+    # - openstack-keystone
+    # - openstack-packstack
+    # - openstack-packstack-puppet
+    # - openstack-puppet-modules
+    # - openstack-selinux
+    # - openstack-utils
+
 
 #generate my_answer.txt
 - name: generate my_answer.txt
@@ -31,27 +124,14 @@
   tags:
    - generate-my_answer.txt
 
-# disable NetworkManager
-- name: stop NetworkManager service
-  service:
-    name: NetworkManager
-    state: stopped
-    enabled: false
-
-
-# - name: check if openstack-nova-compute is already installed
-#   shell: rpm -q openstack-nova-compute
-#   ignore_errors: yes
-#   register: st
 
 #run install openstack(logfile: /var/tmp/packstack/latest/openstack-setup.log, longtime to install)
 # run 'yum remove -y mariadb-server' if packstack install failed
 # run `tail -f /var/tmp/packstack/latest/openstack-setup.log` to view log
 - name: run packstack if '/root/deps/packstack.ok' not exist
-  shell: ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
+  shell: env; ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
   args:
     creates: /root/deps/packstack.ok
-  # when: st | failed
   environment: "{{proxy_env}}"
 
 - name: install sshpass
@@ -91,9 +171,8 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - openstack-neutron-openvswitch.noarch
+    - openstack-neutron-openvswitch
     - iptables-services
-
 
 - name: start iptables service
   service:
@@ -106,3 +185,6 @@
     name: openvswitch
     state: started
     enabled: yes
+
+- name: check openstack status
+  shell: openstack-status

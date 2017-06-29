@@ -1,11 +1,11 @@
 # The address on the local server to listen to.
-KUBE_API_ADDRESS="--insecure-bind-address={{ ansible_eth0.ipv4.address }}"
+KUBE_API_ADDRESS="--insecure-bind-address={{ ansible_eth1.ipv4.address }}"
 # The port on the local server to listen on.
 # KUBE_API_PORT="--port=8080"
 # Port minions listen on
 # KUBELET_PORT="--kubelet_port=10250"
 # Comma separated list of nodes in the etcd cluster
-KUBE_ETCD_SERVERS="--etcd_servers=http://{{ ansible_eth0.ipv4.address }}:2379"
+KUBE_ETCD_SERVERS="--etcd_servers=http://{{ ansible_eth1.ipv4.address }}:2379"
 # Address range to use for services
 KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=10.254.0.0/16"
 # default admission control policies

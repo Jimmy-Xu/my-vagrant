@@ -24,21 +24,16 @@
     - "{{ rpm_hyper }}/hyperstart-0.5-1.el7.centos.x86_64.rpm"
     - "{{ rpm_hyper }}/qemu-hyper-2.4.1-2.el7.centos.x86_64.rpm"
 
-- name: install libvirt
-  yum:
-    name: libvirt
-    state: present
 
 - name: config hyper
   template:
     src: etc/hyper/config
     dest: /etc/hyper/config
 
-- name: start libvirtd and hyperd service
+- name: start hyperd service
   service:
     name: "{{ item }}"
     state: started
     enabled: yes
   with_items:
-    - libvirtd
     - hyperd

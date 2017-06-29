@@ -6,3 +6,4 @@ config_nagios_install: n
 config_lbaas_install: y
 config_neutron_fwaas: y
 config_nova_install: n
+conifg_service_worker: 1

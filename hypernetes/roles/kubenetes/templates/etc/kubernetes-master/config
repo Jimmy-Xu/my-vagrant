@@ -6,4 +6,4 @@ KUBE_LOG_LEVEL="--v=1”
 # Should this cluster be allowed to run privileged docker containers
 KUBE_ALLOW_PRIV="--allow_privileged=false"
 # How the controller-manager, scheduler, and proxy find the apiserver
-KUBE_MASTER="--master=http://{{ ansible_eth0.ipv4.address }}:8080"
+KUBE_MASTER="--master=http://{{ ansible_eth1.ipv4.address }}:8080"

@@ -10,8 +10,8 @@
   roles:
     - common
     - base_setup
-    - docker
     - openstack
+    - docker
     - ceph
     - cinder
     - hyper

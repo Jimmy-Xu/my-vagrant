@@ -151,6 +151,6 @@
 
 ###### Setup kubectl options ######
 - name: setup kubectl options
-  shell: kubectl config set-cluster default --server=http://{{ ansible_eth0.ipv4.address }}:8080 --insecure-skip-tls-verify=true
+  shell: kubectl config set-cluster default --server=http://{{ ansible_eth1.ipv4.address }}:8080 --insecure-skip-tls-verify=true
   shell: kubectl config set-context default --cluster=default
   shell: kubectl config use-context default

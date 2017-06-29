@@ -23,15 +23,15 @@
 - name: copy Dockerfile
   copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile
 
-- debug: msg={{ ansible_eth0.ipv4.address }}
+- debug: msg={{ ansible_eth1.ipv4.address }}
 - name: build xjimmyshcn/ceph image
   docker_image:
     path: "/home/vagrant/learn-ceph/"
     name: "xjimmyshcn/ceph"
     state: present
     buildargs:
-      http_proxy: http://{{ ansible_eth0.ipv4.address }}:8118
-      https_proxy: https://{{ ansible_eth0.ipv4.address }}:8118
+      http_proxy: http://{{ ansible_eth1.ipv4.address }}:8118
+      https_proxy: https://{{ ansible_eth1.ipv4.address }}:8118
 
 # if container ceph-demo's status is alwyas 'Restarting', then check the 'public network' and 'cluster network' in /etc/ceph.conf
 - name: get the network prefix
@@ -53,7 +53,7 @@
       - /dev:/dev
       - /sys:/sys
     env:
-      MON_IP: "{{ ansible_eth0.ipv4.address }}"
+      MON_IP: "{{ ansible_eth1.ipv4.address }}"
       CEPH_NETWORK: "{{ network_prefix.stdout }}"
 
 #modify ceph.conf (fix: https://github.com/ceph/ceph-cookbook/issues/187)

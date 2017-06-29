@@ -1,6 +1,6 @@
 HOSTNAME='{{ ansible_hostname }}'
 IF_NAME='{{ if_name }}'
-IF_IP='{{ ansible_eth0.ipv4.address }}'
+IF_IP='{{ ansible_eth1.ipv4.address }}'
 KEYSTONE_ADMIN_PW='{{ keystone_admin_pw }}'
 KEYSTONE_DEMO_PW='{{ keystone_demo_pw }}'
 RBD_SECRET_UUID='{{ rbd_secret_uuid }}'

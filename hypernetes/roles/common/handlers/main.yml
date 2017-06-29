@@ -10,5 +10,15 @@
 
 - name: restart-privoxy
   service:
-    name: sslocal
+    name: privoxy
+    state: restarted
+
+- name: restart-dhclient
+  service:
+    name: dhclient
+    state: restarted
+
+- name: restart-libvirtd
+  service:
+    name: libvirtd
     state: restarted

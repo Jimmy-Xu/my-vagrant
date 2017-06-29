@@ -1,34 +1,48 @@
 ---
+## disable NetworkManager and FirewallD, enable network
+- name: Disable NetworkManager and FirewallD
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  with_items:
+    - NetworkManager
+    - firewalld
+- name: Enable network
+  service:
+    name: network
+    state: started
+    enabled: true
+
+## patch for ssh
 - name: solve ssh slow
   copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
   register: ssh_config
 - name: restart sshd if sshd_config has changed
   when: ssh_config.changed
   shell: service sshd restart
-- name: solve eth0 has no ip
-  shell: (ps -ef | grep dhclient) && echo "dhclient is running" || dhclient
 
-###### install common package ######
-#add 163 yum repo
-- name: backup CentOS-Base.repo
-  command: mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+## patch for dhcp
+- name: solve ip lost after dhcp timeout
+  shell: (ps -ef | grep dhclient) && echo 'dhclient is running' || dhclient eth0
+- cron:
+    name: dhclient crontjob
+    minute: "*/2"
+    user: root
+    job: "(ps -ef | grep dhclient) && echo 'dhclient is running' || dhclient eth0"
+    cron_file: ansible_dhclient-autorenew
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+###########################################################
+## update yum cache only once
+- name: clean and make cache for yum once
+  shell: yum clean all && yum makecache && touch /root/yum.cached
   args:
-    creates: /etc/yum.repos.d/CentOS-Base.repo.backup
+    creates: /root/yum.cached
 
-- name: download CentOS-Base.repo from 163
-  copy:
-    src: etc/yum.repos.d/CentOS7-Base-163.repo
-    dest: /etc/yum.repos.d/CentOS-Base.repo
-
-# config yum(fix: Failed to connect to 2605:9000:401:102::2: Network is unreachable\"\nhttp://mirror.centos.org/centos/7/cloud/x86_64/openstack-liberty/repodata/repomd.xml)
-- name: copy fastestmirror.conf
-  copy:
-    src: etc/yum/pluginconf.d/fastestmirror.conf
-    dest: /etc/yum/pluginconf.d/fastestmirror.conf
-- name: copy yum.conf
-  copy:
-    src: etc/yum.conf
-    dest: /etc/yum.conf
 
 # add epel yum repo
 - name: install epel-release
@@ -36,52 +50,26 @@
     name: epel-release
     state: present
 
+- name: create /etc/yum.repos.d/bak dir
+  file:
+    path: /etc/yum.repos.d/bak
+    state: directory
+- name: move epel-testing.repo to /etc/yum.repos.d/bak
+  shell: mv epel-testing.repo bak/epel-testing.repo && mv CentOS-{Debuginfo,Sources}.repo bak/
+  args:
+    chdir: /etc/yum.repos.d/
+    creates: /etc/yum.repos.d/bak/epel-testing.repo
+
 - name: enable epel
   shell: sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/epel.repo
 
-# install common package
-- name: install common package
+- name: install pip
   yum:
-    name: "{{ item }}"
+    name: python-pip
     state: present
-  with_items:
-    - wget
-    - net-tools
-    - python-pip
-    - git
-    - gcc
-    - automake
-    - autoconf
-    - iptables
-    - iptables-services
-    - libvirt
-    - psmisc
-    - tree
-
 - name: upgrade pip
   shell: pip install --upgrade pip
 
-#disable firewalld
-- name: disalbe firewalld service
-  service:
-    name: firewalld
-    state: stopped
-    enabled: no
-
-#start iptables
-- name: start iptables service
-  service:
-    name: iptables
-    state: started
-    enabled: yes
-
-#check iptables
-- name: check iptables
-  shell: iptables -F && iptables -X
-
-#disable selinux
-- name: disable selinux
-  selinux: state=disabled
 
 ###### start shadowsocks sslcoal service(socks5 proxy) ######
 - name: install shadowsocks
@@ -101,17 +89,7 @@
   tags:
    - config-shadowsocks
 
-- name: add systemd config for sslocal
-  copy:
-    src: usr/lib/systemd/system/sslocal.service
-    dest: /usr/lib/systemd/system/sslocal.service
-
-- name: start sslocal service
-  service:
-    name: sslocal
-    state: started
-    enabled: yes
-
+# add service:sslocal
 - name: install unit file for sslocal service
   copy:
     src: usr/lib/systemd/system/sslocal.service
@@ -120,6 +98,12 @@
     - reload-systemd
     - restart-sslocal
 
+- name: start sslocal service
+  service:
+    name: sslocal
+    state: started
+    enabled: yes
+
 
 ###### start privoxy service(socks5 proxy -> http proxy) ######
 - name: install privoxy
@@ -127,18 +111,18 @@
     name: privoxy
     state: present
 
-- name: start privoxy service
-  service:
-    name: privoxy
-    state: started
-    enabled: yes
-
 - name: config privoxy
   copy:
     src: etc/privoxy/config
     dest: /etc/privoxy/config
   notify:
     - restart-privoxy
+
+- name: start privoxy service
+  service:
+    name: privoxy
+    state: started
+    enabled: yes
 
 ###### proxychains-ng(use proxy for any command) ######
 - name: install proxychains-ng
@@ -158,6 +142,7 @@
   copy:
     src: usr/local/etc/proxychains.conf
     dest: /usr/local/etc/proxychains.conf
+
 
 ##### mount disk #####
 - name: create a xfs filesystem on /dev/vdb and /dev/vdc.
@@ -188,9 +173,74 @@
     fstype: xfs
     state: mounted
 
+
+### install common package ###
+- name: install common package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items:
+    - wget
+    - tree
+    - net-tools
+    - git
+    - gcc
+    - automake
+    - autoconf
+    - psmisc
+
+## install libvirt
+- name: install libvirt package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items:
+    - libvirt
+    - libvirt-daemon-driver-qemu
+    - libvirt-daemon-driver-storage
+
+# config libvirt
+- name: copy libvirt config
+  copy:
+    src: usr/share/libvirt/networks/default.xml
+    dest: /usr/share/libvirt/networks/default.xml
+  notify:
+    - restart-libvirtd
+
+# start libvirtd service
+- name: start libvirtd service
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+
+## install iptables
+- name: install iptables package
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items:
+    - iptables
+    - iptables-services
+
+- name: start iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: true
+
+#check iptables
+- name: check iptables
+  shell: iptables -F && iptables -X
+
+
 ###### init ######
 - name: generate h8s_deploy_env
-  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth0'\nIF_IP='{{ ansible_eth0.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
+  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth0'\nIF_IP='{{ ansible_eth1.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
   args:
     creates: /root/h8s_deploy_env
 
