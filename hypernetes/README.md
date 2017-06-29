@@ -4,10 +4,23 @@ Run hypernetes all in one VM
 
 # dependence
 
+## package
+
 - vagrant
 - libvirt
 - qemu
 - ansible
+
+## network interface ip
+
+- docker0: 172.16.0.1 -> 172.222.0.1
+- virbr0:  192.168.121.1 -> 192.168.222.1
+
+## service port
+
+- socks5(shadowsocks): 1080
+- http_proxy(privoxy): 8118
+
 
 # usage
 

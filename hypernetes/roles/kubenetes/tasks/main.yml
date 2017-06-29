@@ -1,9 +1,4 @@
 ---
-# uninstall
-- name: solve docker-engine-selinux conflicts with 2:container-selinux
-  yum:
-    name: docker-engine-selinux
-    state: absent
 
 # require docker 1.12.6
 - name: install dependency package
@@ -13,7 +8,6 @@
   with_items:
     - kubernetes
     - etcd
-    - iptables
 
 - name: set DOCKER_NETWORK_OPTIONS in /etc/sysconfig/docker-network
   lineinfile:

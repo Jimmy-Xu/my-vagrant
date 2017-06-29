@@ -23,7 +23,6 @@
 - name: copy Dockerfile
   copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile
 
-- debug: msg={{ ansible_eth1.ipv4.address }}
 - name: build xjimmyshcn/ceph image
   docker_image:
     path: "/home/vagrant/learn-ceph/"

@@ -2,10 +2,24 @@
 ###### start docker daemon ######
 - name: add docker yum repo
   copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
-- name: install docker
-  yum:
-    name: docker-engine-1.12.6
-    state: present
+
+- name: download docker
+  shell: wget -c -O /root/deps/{{ item }} http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item }}
+  environment: "{{ proxy_env }}"
+  with_items:
+    - docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+    - docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+    - docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+
+- name: install docker rpm
+  shell: rpm -ivh {{ item }}
+  args:
+    chdir: /root/deps
+    creates: /bin/docker-current
+  with_items:
+    - docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+    - docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+    - docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
 
 - name: copy script for docker0
   copy: src={{ item }} dest=/root/ mode="0755"
@@ -38,6 +52,20 @@
   shell: |
     systemctl daemon-reload
     systemctl restart docker
+
+# patch for "shim error: docker-runc not installed on system"
+- name: create soft link for 'docker-runc-current'
+  shell: ln -s docker-runc-current docker-runc
+  args:
+    chdir:  /usr/libexec/docker
+    creates:  /usr/libexec/docker/docker-runc
+
+- name: create soft link for 'docker-current'
+  shell: ln -s docker-current docker
+  args:
+    chdir:  /bin
+    creates:  /bin/docker
+
 
 # ansible docker module required
 - name: install docker-py

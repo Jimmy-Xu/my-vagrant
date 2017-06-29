@@ -32,5 +32,5 @@
     - openstack-cinder-volume.service
     - openstack-losetup.service
 
-- name: test cinder
-  shell: . /root/keystonerc_admin && cinder list
+# - name: test cinder
+#   shell: . /root/keystonerc_admin && cinder list

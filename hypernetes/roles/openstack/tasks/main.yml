@@ -125,9 +125,10 @@
    - generate-my_answer.txt
 
 
-#run install openstack(logfile: /var/tmp/packstack/latest/openstack-setup.log, longtime to install)
-# run 'yum remove -y mariadb-server' if packstack install failed
-# run `tail -f /var/tmp/packstack/latest/openstack-setup.log` to view log
+###### run install openstack ######
+# ensure "mariadb-server" isn't installed before start packstack
+# log :/var/tmp/packstack/latest/openstack-setup.log
+###################################
 - name: run packstack if '/root/deps/packstack.ok' not exist
   shell: env; ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
   args:
