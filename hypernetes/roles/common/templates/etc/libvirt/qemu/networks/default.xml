@@ -11,9 +11,9 @@ or other application using the libvirt API.
   <forward mode='nat'/>
   <bridge name='virbr0' stp='on' delay='0'/>
   <!--<mac address='52:54:00:ab:59:04'/>-->
-  <ip address='192.168.222.1' netmask='255.255.255.0'>
+  <ip address='{{ virbr0_ip }}' netmask='255.255.255.0'>
     <dhcp>
-      <range start='192.168.222.2' end='192.168.222.254'/>
+      <range start='{{ virbr0_range_start }}' end='{{ virbr0_range_end }}'/>
     </dhcp>
   </ip>
 </network>

@@ -1,14 +1,5 @@
 ---
 
-- name: install dependency
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - wget
-    - screen
-    - gcc
-
 # prepare golang env
 - name: include go.yml
   include: go.yml

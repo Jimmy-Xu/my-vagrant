@@ -1,3 +1,14 @@
+# virbr1 in host os
+virbr1_ip: 192.168.121.1
+
+# virbr0 in VM
+virbr0_ip:  192.168.222.1
+virbr0_range_start: 192.168.222.2
+virbr0_range_end: 192.168.222.254
+
+#docker0 in VM
+docker0_ip: 172.222.0.1
+
 h8s_hostname: h8s-single
 keystone_admin_pw: aaa123aa
 keystone_demo_pw: aaa123aa

@@ -1,6 +1,63 @@
 ---
-## disable NetworkManager and FirewallD, enable network
-- name: Disable NetworkManager and FirewallD
+## show env
+- debug: msg={{ proxy_env }}
+
+## patch for ssh
+- name: solve ssh slow
+  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
+  register: ssh_config
+- name: restart sshd if sshd_config has changed
+  when: ssh_config.changed
+  service:
+    name: sshd
+    state: restarted
+    enabled: true
+
+## ssh client config
+- name: ensure .ssh dir
+  shell: mkdir -p /root/.ssh /home/vagrant/.ssh
+- name: ssh client config
+  copy: src=ssh/config dest=/root/.ssh/config
+- name: ssh client config
+  copy: src=ssh/config dest=/home/vagrant/.ssh/config
+
+
+## patch for dhcp
+- name: solve ip lost after dhcp timeout
+  shell: (ps -ef | grep dhclient | grep -v grep) && echo 'dhclient is running' || dhclient eth0
+- name: dhclient crontjob
+  cron:
+    minute: "*/20"
+    user: root
+    job: "/bin/bash -c '(ps -ef | grep dhclient | grep -v grep) && echo dhclient is running || /sbin/dhclient eth0'"
+    cron_file: ansible_dhclient-autorenew
+
+# - name: ping crontjob
+#   cron:
+#     minute: "*/1"
+#     user: root
+#     job: "/bin/bash -c '/bin/pkill ping; /bin/ping -c15 -W1 {{ virbr1_ip }}'"
+#     cron_file: ansible_ping_host
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+# #disable ipv6
+# - name: disable ipv6 config
+#   copy:
+#     src: etc/sysctl.conf
+#     dest: /etc/sysctl.conf
+# - name: take effect for sysctl
+#   shell: sysctl -p
+#
+# - name: disable ipv6 runtime
+#   shell: |
+#     echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+#     echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+
+## for openstack
+- name: Disable NetworkManager & firewalld Service
   service:
     name: "{{ item }}"
     state: stopped
@@ -14,55 +71,31 @@
     state: started
     enabled: true
 
-## patch for ssh
-- name: solve ssh slow
-  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
-  register: ssh_config
-- name: restart sshd if sshd_config has changed
-  when: ssh_config.changed
-  shell: service sshd restart
+- name: create /etc/resolv.conf.d dir
+  file:
+    path: /etc/resolv.conf.d
+    state: directory
+- name: config dns
+  copy:
+    src: etc/resolv.conf.d/base
+    dest: /etc/resolv.conf.d/base
+- name: append dns to resolv.conf
+  shell: grep 'nameserver 114.114.114.114' /etc/resolv.conf || echo 'nameserver 114.114.114.114' >> /etc/resolv.conf
 
-## patch for dhcp
-- name: solve ip lost after dhcp timeout
-  shell: (ps -ef | grep dhclient | grep -v grep) && echo 'dhclient is running' || dhclient eth0
-- cron:
-    name: dhclient crontjob
-    minute: "*/1"
-    user: root
-    job: "/bin/bash -c '(ps -ef | grep dhclient | grep -v grep) && echo dhclient is running || /sbin/dhclient eth0'"
-    cron_file: ansible_dhclient-autorenew
-
-#disable selinux
-- name: disable selinux
-  selinux: state=disabled
-
-###########################################################
-## config yum repo (only once)
-# - name: backup original CentOS-Base.repo
-#   shell: cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
-#   args:
-#     creates: /etc/yum.repos.d/CentOS-Base.repo.bak
-# - name: set yum repo to mirror.tuna.tsinghua.edu.cn
-#   copy:
-#     src: etc/yum.repos.d/CentOS-Base.repo
-#     dest: /etc/yum.repos.d/CentOS-Base.repo
-- name: clean and make cache for yum once
-  shell: yum clean all && yum makecache && touch /root/yum.cached
-  args:
-    creates: /root/yum.cached
-
-
-# add epel yum repo
-- name: install basic package
+## install yum repo: epel
+- name: install yum repo for epel-release
   yum:
     name: "{{ item }}"
     state: present
+  environment: "{{ proxy_env }}"
   with_items:
     - epel-release
-    - git
-    - gcc
-    - automake
-    - autoconf
+
+- name: update the repo to use HTTP rather than HTTPS
+  shell: |
+    sed -i "s/=https/=http/" /etc/yum.repos.d/epel.repo
+    sed -i "s/^#baseurl=/baseurl=/" /etc/yum.repos.d/epel.repo
+    sed -i "s/^mirrorlist=/#mirrorlist=/" /etc/yum.repos.d/epel.repo
 
 - name: create /etc/yum.repos.d/bak dir
   file:
@@ -74,16 +107,15 @@
     chdir: /etc/yum.repos.d/
     creates: /etc/yum.repos.d/bak/epel-testing.repo
 
-- name: enable epel
-  shell: sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/epel.repo
-
 - name: install pip
   yum:
     name: python-pip
     state: present
+  environment: "{{ proxy_env }}"
 - name: upgrade pip
-  shell: pip install --upgrade pip
-
+  shell: pip install --upgrade pip && touch /root/pip.upgraded
+  args:
+    creates: /root/pip.upgraded
 
 ###### start shadowsocks sslcoal service(socks5 proxy) ######
 - name: install shadowsocks
@@ -124,6 +156,7 @@
   yum:
     name: privoxy
     state: present
+  environment: "{{ proxy_env }}"
 
 - name: config privoxy
   copy:
@@ -138,26 +171,53 @@
     state: started
     enabled: yes
 
-###### proxychains-ng(use proxy for any command) ######
-- name: install proxychains-ng
-  git:
-    repo: https://github.com/rofl0r/proxychains-ng.git
-    dest: /root/proxychains-ng
-    version: master
-    accept_hostkey: yes
+## install basick package
+- name: install basic package
+  yum:
+    name: "{{ item }}"
+    state: present
   environment: "{{ proxy_env }}"
-- name: build proxychains-ng
-  shell: ./configure –prefix=/usr –sysconfdir=/etc && make && make install && ln -s /usr/local/bin/proxychains4 /bin/proxychains4
-  args:
-    chdir: /root/proxychains-ng/
-    creates: /bin/proxychains4
+  with_items:
+    - wget
+    - git
+    - gcc
+    - automake
+    - autoconf
+    - screen
+    - multitail
 
+- name: download proxychains-ng
+  shell: |
+    wget -c http://springdale.math.ias.edu/data/puias/unsupported/7/x86_64/proxychains-ng-4.11-1.sdl7.x86_64.rpm
+    rpm -ivh proxychains-ng-4.11-1.sdl7.x86_64.rpm
+  args:
+    chdir: /root/
+    creates: /bin/proxychains4
+  environment: "{{ proxy_env }}"
 - name: config proxychains-ng
   copy:
-    src: usr/local/etc/proxychains.conf
-    dest: /usr/local/etc/proxychains.conf
+    src: etc/proxychains.conf
+    dest: /etc/proxychains.conf
 
+######################################################
+## install yum repo: centos-release-openstack-liberty
+- name: install yum repo for centos-release-openstack-liberty
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items:
+    - centos-release-openstack-liberty
 
+## install yum repo: ceph
+- name: add ceph yum repo
+  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
+
+## install yum repo: docker
+- name: add docker yum repo
+  copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
+
+######################################################
 ##### mount disk #####
 - name: create a xfs filesystem on /dev/vdb and /dev/vdc.
   filesystem:
@@ -195,9 +255,8 @@
     state: present
   environment: "{{ proxy_env }}"
   with_items:
-    - wget
-    - tree
     - net-tools
+    - tree
     - psmisc
 
 ## install libvirt
@@ -208,9 +267,6 @@
   environment: "{{ proxy_env }}"
   with_items:
     - libvirt
-    - libvirt-daemon-driver-qemu
-    - libvirt-daemon-driver-storage
-
 
 - name: copy script for virbr0
   copy: src={{ item }} dest=/root/ mode="0755"
@@ -224,11 +280,12 @@
 
 # config libvirt
 - name: copy libvirt config
-  copy:
+  template:
     src: etc/libvirt/qemu/networks/default.xml
     dest: /etc/libvirt/qemu/networks/default.xml
   notify:
     - restart-libvirtd
+
 
 # start libvirtd service
 - name: start libvirtd service

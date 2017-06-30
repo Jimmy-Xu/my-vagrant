@@ -19,6 +19,7 @@
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
+
 # The default requires explicit activation of protocol 1
 #Protocol 2
 
@@ -155,3 +156,7 @@ Subsystem	sftp	/usr/libexec/openssh/sftp-server
 ##################################
 UseDNS no
 GSSAPIAuthentication no
+AddressFamily inet
+ClientAliveInterval 10
+ClientAliveCountMax 5
+MaxSessions 50

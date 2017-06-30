@@ -25,6 +25,7 @@
   yum:
     name: "{{ item }}"
     state: present
+  environment: "{{ proxy_env }}"
   with_items:
     - ntp
     - vim

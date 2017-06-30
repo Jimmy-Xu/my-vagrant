@@ -4,118 +4,10 @@
     state: directory
     mode: 0755
 
-# install rdo-release.rpm
-- name: copy rdo-release.rpm
-  copy:
-    src: rpm/rdo-release.rpm
-    dest: /root/deps/rdo-release.rpm
-- name: install rdo-release.rpm
-  yum:
-    name: /root/deps/rdo-release.rpm
-    state: present
-
-
-# - copy: src=tools/uninstall1.sh dest=/root/uninstall1.sh
-# - copy: src=tools/uninstall2.sh dest=/root/uninstall2.sh
 - name: copy uninstall script
   copy: src={{ item }} dest=/root/ mode="0755"
   with_fileglob:
     - tools/*
-
-
-- name: fix yum issue
-  shell: yum-complete-transaction --cleanup-only && yum history redo last -y
-  environment: "{{proxy_env}}"
-
-- name: install dependency package
-  yum:
-    name: "{{ item }}"
-    state: present
-  environment: "{{proxy_env}}"
-  with_items:
-    - bootswatch-fonts
-    - erlang
-    - erlang-gs
-    - fontawesome-fonts
-    - fontawesome-fonts-web
-    - fontconfig
-    - iscsi-initiator-utils-iscsiuio
-    - libXft
-    - mdi-fonts
-    - mod_wsgi
-    - python-XStatic-Font-Awesome
-    - python-ceilometerclient
-    - python-heatclient
-    - python-neutronclient
-    - python-saharaclient
-    - python-troveclient
-    - python2-XStatic-bootswatch
-    - python2-XStatic-mdi
-    - python2-XStatic-roboto-fontface
-    - roboto-fontface-fonts
-    - tk
-
-
-- name: install centos-release-openstack-liberty package
-  yum:
-    name: "{{ item }}"
-    state: present
-  environment: "{{proxy_env}}"
-  with_items:
-    - centos-release-openstack-liberty
-
-- name: update via yum
-  shell: yum update -y
-  environment: "{{ proxy_env }}"
-
-
-- name: install openstack-packstack package
-  yum:
-    name: "{{ item }}"
-    state: present
-  environment: "{{proxy_env}}"
-  with_items:
-    - openstack-packstack
-
-
-- name: install openstack package
-  yum:
-    name: "{{ item }}"
-    state: present
-  environment: "{{proxy_env}}"
-  with_items:
-    - fontpackages-filesystem
-    - httpd
-    - iscsi-initiator-utils
-    - memcached
-    - redis
-    - ntp
-    - ntpdate
-    - perl-DBD-MySQL
-    - perl-DBI
-    - puppet
-    - python-cinder
-    - python-cinderclient
-    - python-glance
-    - python-glance-store
-    - python-glanceclient
-    - python-keystone
-    - python-keystoneclient
-    - python-keystonemiddleware
-    - python-memcached
-    - python-novaclient
-    - python-openstackclient
-    - python-swiftclient
-    - python2-django-openstack-auth
-    # - openstack-cinder
-    # - openstack-glance
-    # - openstack-keystone
-    # - openstack-packstack
-    # - openstack-packstack-puppet
-    # - openstack-puppet-modules
-    # - openstack-selinux
-    # - openstack-utils
-
 
 #generate my_answer.txt
 - name: generate my_answer.txt
@@ -125,21 +17,43 @@
   tags:
    - generate-my_answer.txt
 
+# install packstack
+- name: install openstack-packstack
+  yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items:
+    - openstack-packstack
+    - python-openstackclient
+    - memcached
+    - httpd
+    - haproxy
+    - erlang
+    - ruby
+
+- name: check env for install openstack
+  shell: |
+      (ps -ef | grep  "puppet.*packstack" | grep -v grep) || echo OK ;
 
 ###### run install openstack ######
 # ensure "mariadb-server" isn't installed before start packstack
 # log :/var/tmp/packstack/latest/openstack-setup.log
 ###################################
 - name: run packstack if '/root/deps/packstack.ok' not exist
-  shell: env; ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && (packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok)
+  shell: |
+    env;
+    ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
   args:
+    chdir: /root
     creates: /root/deps/packstack.ok
-  environment: "{{proxy_env}}"
+  environment: "{{ proxy_env }}"
 
 - name: install sshpass
   yum:
     name: sshpass
     state: present
+  environment: "{{ proxy_env }}"
 
 #install oslo.i18n(fix "ImportError: cannot import name _lazy")
 - name: install oslo.i18n
@@ -168,19 +82,13 @@
     dest: /etc/neutron.conf
 
 #install openstack-neutron-openvswitch and iptables
-- name: install openstack-neutron-openvswitch and iptables
+- name: install openstack-neutron-openvswitch
   yum:
     name: "{{ item }}"
     state: present
+  environment: "{{ proxy_env }}"
   with_items:
     - openstack-neutron-openvswitch
-    - iptables-services
-
-- name: start iptables service
-  service:
-    name: iptables
-    state: started
-    enabled: yes
 
 - name: start openvswitch service
   service:

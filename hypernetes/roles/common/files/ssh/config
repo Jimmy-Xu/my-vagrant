@@ -1,8 +1,5 @@
-Host 192.168.121.*
+Host *
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
-
-Host 127.0.0.1
-   StrictHostKeyChecking no
-   UserKnownHostsFile=/dev/null
-
+   #ServerAliveInterval 5
+   #ServerAliveCountMax 2

@@ -39,12 +39,19 @@ $sudo ./util_centos.sh
     halt
     destroy
 
+//prepare pool
+$ sudo virsh pool-create-as hypernetes --type dir --target /var/lib/libvirt/hypernetes
+
 //start everything in one command
 //1)ensure runtime environment(vagrant,libvirt,ansible...)
 $ sudo ./util_centos.sh run
 
 //2)quick run, skip ensure runtime environment
 $ sudo ./util_centos.sh quickrun
+
+// view log
+$ tail -f /var/log/messages
+$ systemctl status sslocal
 ```
 
 ## enter vm

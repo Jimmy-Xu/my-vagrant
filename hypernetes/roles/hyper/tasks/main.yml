@@ -10,6 +10,7 @@
     url: "http://mirror-hyper-install.s3.amazonaws.com/0.5/{{ item.name }}"
     dest: "{{ rpm_hyper }}"
     checksum: "{{ item.checksum }}"
+  environment: "{{ proxy_env }}"
   with_items:
     - { name: "hyper-0.5-1.el7.centos.x86_64.rpm", checksum: "md5:416663986e507c69480d16ed09bf765a" }
     - { name: "hyperstart-0.5-1.el7.centos.x86_64.rpm", checksum: "md5:59d143aaa5c6216176e9a391a5d3b1aa" }
@@ -19,6 +20,7 @@
   yum:
     name: "{{ item }}"
     state: present
+  environment: "{{ proxy_env }}"
   with_items:
     - "{{ rpm_hyper }}/hyper-0.5-1.el7.centos.x86_64.rpm"
     - "{{ rpm_hyper }}/hyperstart-0.5-1.el7.centos.x86_64.rpm"

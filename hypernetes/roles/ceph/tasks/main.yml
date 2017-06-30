@@ -1,11 +1,23 @@
 ---
+# uninstall urllib3 when python2-urllib3 not installed
+- name: check python2-urllib3
+  shell: rpm -qa | grep python2-urllib3 | wc -l
+  register: python2_urllib3_installed
+- name: solve conflict between urllib3 and python2-urllib3
+  when: python2_urllib3_installed.stdout == "0"
+  pip:
+    name: urllib3
+    state: absent
+  environment: "{{ proxy_env }}"
+
 ###### install ceph client ######
-- name: add ceph yum repo
-  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
 - name: install ceph client
   yum:
     name: ceph-common
     state: present
+    enablerepo: ceph
+  environment: "{{ proxy_env }}"
+
 
 - name: add reset tool for ceph
   copy:
@@ -18,9 +30,9 @@
   shell: docker images | grep 'ceph.*demo.*jewel' | wc -l
   register: ceph_image
 - debug: msg={{ ceph_image.stdout }}
-
-- name: pull ceph image 'ceph/demo:tag-build-master-jewel-ubuntu-16.04'
-  command: docker pull ceph/demo:tag-build-master-jewel-ubuntu-16.04
+- name: pull image ceph/demo:tag-build-master-jewel-ubuntu-16.04
+  docker_image:
+    name: ceph/demo:tag-build-master-jewel-ubuntu-16.04
   when: ceph_image.stdout != "1"
 
 ###### start ceph server in container ######
@@ -35,8 +47,8 @@
     name: "xjimmyshcn/ceph"
     state: present
     buildargs:
-      http_proxy: http://{{ ansible_eth1.ipv4.address }}:8118
-      https_proxy: https://{{ ansible_eth1.ipv4.address }}:8118
+      http_proxy: http://{{ virbr1_ip }}:8118
+      https_proxy: http://{{ virbr1_ip }}:8118
 
 # if container ceph-demo's status is alwyas 'Restarting', then check the 'public network' and 'cluster network' in /etc/ceph.conf
 - name: get the network prefix
