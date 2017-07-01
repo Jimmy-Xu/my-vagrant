@@ -9,6 +9,7 @@ virbr0_range_end: 192.168.222.254
 #docker0 in VM
 docker0_ip: 172.222.0.1
 
+# kubernetes
 h8s_hostname: h8s-single
 keystone_admin_pw: aaa123aa
 keystone_demo_pw: aaa123aa
@@ -17,6 +18,7 @@ rbd_secret_uuid: aaa123aa
 #for user os_network module(avoid 'shade is required for this module')
 ansible_python_interpreter: "/bin/env python"
 
+# golang
 go_install_dir: /usr/local
 go_root: /usr/local/go
 go_path: /root/gopath

@@ -2,9 +2,28 @@ Run hypernetes all in one VM
 ====================================
 >vagrant + libvirt + ansible + kvm
 
-# dependence
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-## package
+- [summary](#summary)
+	- [dependency package](#dependency-package)
+	- [network interface ip](#network-interface-ip)
+	- [service port](#service-port)
+- [usage](#usage)
+	- [modify config](#modify-config)
+	- [prepare pool](#prepare-pool)
+	- [start vm](#start-vm)
+	- [enter vm](#enter-vm)
+		- [enter vm by vagrant](#enter-vm-by-vagrant)
+		- [enter vm by virsh](#enter-vm-by-virsh)
+	- [all task](#all-task)
+
+<!-- /TOC -->
+
+# summary
+
+## dependency package
+
+> for host os
 
 - vagrant
 - libvirt
@@ -13,41 +32,52 @@ Run hypernetes all in one VM
 
 ## network interface ip
 
-- docker0: 172.16.0.1 -> 172.222.0.1
-- virbr0:  192.168.121.1 -> 192.168.222.1
+> change default value ip VM
+
+- docker0: 172.16.0.1 -> `172.222.0.1`
+- virbr0:  192.168.121.1 -> `192.168.222.1`
 
 ## service port
 
-- socks5(shadowsocks): 1080
-- http_proxy(privoxy): 8118
+> use proxy in host os mainly
+
+- socks5(shadowsocks): `1080`
+- http_proxy(privoxy): `8118`
 
 
 # usage
 
-## start vm
+## modify config
 
-> then `run` command will ensure all the dependency package
+> config file: group_vars/all/`vars_file.yml`
+
+## prepare pool
+
+> run in host os
+
+```
+//run as root user
+$ virsh pool-create-as hypernetes --type dir --target /var/lib/libvirt/hypernetes
+$ virsh pool-dumpxml hypernetes > /etc/libvirt/storage/hypernetes.xml
+$ virsh pool-define hypernetes.xml
+$ virsh pool-autostart hypernetes
+$ virsh pool-list
+```
+
+## start vm
 
 ```
 //show usage
-$sudo ./util_centos.sh   
+$ ./util_centos.sh
   usage: ./util_centos.sh <command>
   <command>:
     run
-    quickrun
     list
     halt
     destroy
 
-//prepare pool
-$ sudo virsh pool-create-as hypernetes --type dir --target /var/lib/libvirt/hypernetes
-
 //start everything in one command
-//1)ensure runtime environment(vagrant,libvirt,ansible...)
-$ sudo ./util_centos.sh run
-
-//2)quick run, skip ensure runtime environment
-$ sudo ./util_centos.sh quickrun
+$ ./util_centos.sh run
 
 // view log
 $ tail -f /var/log/messages
@@ -58,16 +88,17 @@ $ systemctl status sslocal
 
 ### enter vm by vagrant
 ```
-$ sudo vagrant status
-  Current machine states:
+$ vagrant status
+01/07/2017 12:15:27 Current machine states:
 
-  default                   running (libvirt)
+default                   running (libvirt)
 
-  The Libvirt domain is running. To stop this machine, you can run
-  `vagrant halt`. To destroy the machine, you can run `vagrant destroy`.
-$ sudo vagrant ssh default
-  Last login: Tue Mar  8 04:35:12 2016
-  [vagrant@h8s-single ~]$
+The Libvirt domain is running. To stop this machine, you can run
+`vagrant halt`. To destroy the machine, you can run `vagrant destroy`.
+
+$ vagrant ssh default
+Last login: Sat Jul  1 04:15:19 2017 from 192.168.121.1
+[vagrant@localhost ~]$
 ```
 
 ### enter vm by virsh
@@ -75,29 +106,31 @@ $ sudo vagrant ssh default
 > default account: vagrant/vagrant
 
 ```
-$ sudo virsh list                  
-   Id    Name                           State
-  ----------------------------------------------------
-   5     hypernetes_default                 running
+$ sudo virsh list
+Id    Name                           State
+----------------------------------------------------
+1     hypernetes_default             running
 
 $ sudo virsh console hypernetes_default
-  Connected to domain hypernetes_default
-  Escape character is ^]
+Connected to domain hypernetes_default
+Escape character is ^]
 
-  CentOS Linux 7 (Core)
-  Kernel 3.10.0-327.4.5.el7.x86_64 on an x86_64
+CentOS Linux 7 (Core)
+Kernel 3.10.0-514.21.2.el7.x86_64 on an x86_64
 
-  localhost login: vagrant
-  Password:
-  Last login: Tue Mar  8 04:33:33 on ttyS0
-  [vagrant@h8s-single ~]$
+h8s-single login: vagrant
+Password:
+Last login: Sat Jul  1 04:16:58 from 192.168.121.1
+[vagrant@h8s-single ~]$
 ```
 
-## main task
+## all task
 
+- common
 - base_setup
-- openstack
+- docker
 - ceph
+- openstack
 - cinder
 - hyper
 - kubestack

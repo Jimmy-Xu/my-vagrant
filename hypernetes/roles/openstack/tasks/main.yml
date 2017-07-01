@@ -19,18 +19,20 @@
 
 # install packstack
 - name: install openstack-packstack
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - openstack-packstack
     - python-openstackclient
-    - memcached
-    - httpd
-    - haproxy
     - erlang
     - ruby
+    - httpd
+    - haproxy
+    - redis
+    - memcached
+    - mongodb-server
 
 - name: check env for install openstack
   shell: |
@@ -41,19 +43,19 @@
 # log :/var/tmp/packstack/latest/openstack-setup.log
 ###################################
 - name: run packstack if '/root/deps/packstack.ok' not exist
+  environment: "{{ proxy_env }}"
   shell: |
     env;
     ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
   args:
     chdir: /root
     creates: /root/deps/packstack.ok
-  environment: "{{ proxy_env }}"
 
 - name: install sshpass
+  environment: "{{ proxy_env }}"
   yum:
     name: sshpass
     state: present
-  environment: "{{ proxy_env }}"
 
 #install oslo.i18n(fix "ImportError: cannot import name _lazy")
 - name: install oslo.i18n
@@ -83,10 +85,10 @@
 
 #install openstack-neutron-openvswitch and iptables
 - name: install openstack-neutron-openvswitch
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - openstack-neutron-openvswitch
 

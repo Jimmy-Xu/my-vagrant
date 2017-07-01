@@ -2,10 +2,10 @@
 
 # require docker 1.12.6
 - name: install dependency package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - kubernetes
     - etcd
@@ -20,6 +20,7 @@
 
 # get k8s-bin
 - name: download k8s-bin
+  environment: "{{ proxy_env }}"
   get_url:
     url: "{{ k8s_bin_url }}"
     dest: /root/deps/k8s-bin.tar.gz

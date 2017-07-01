@@ -84,10 +84,10 @@
 
 ## install yum repo: epel
 - name: install yum repo for epel-release
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - epel-release
 
@@ -108,10 +108,10 @@
     creates: /etc/yum.repos.d/bak/epel-testing.repo
 
 - name: install pip
+  environment: "{{ proxy_env }}"
   yum:
     name: python-pip
     state: present
-  environment: "{{ proxy_env }}"
 - name: upgrade pip
   shell: pip install --upgrade pip && touch /root/pip.upgraded
   args:
@@ -123,7 +123,8 @@
     name: shadowsocks
     version: 2.8.2
 
-- file:
+- name: create dir /etc/shadowsocks
+  file:
     path: /etc/shadowsocks
     state: directory
     mode: 0755
@@ -153,10 +154,10 @@
 
 ###### start privoxy service(socks5 proxy -> http proxy) ######
 - name: install privoxy
+  environment: "{{ proxy_env }}"
   yum:
     name: privoxy
     state: present
-  environment: "{{ proxy_env }}"
 
 - name: config privoxy
   copy:
@@ -173,10 +174,10 @@
 
 ## install basick package
 - name: install basic package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - wget
     - git
@@ -187,13 +188,13 @@
     - multitail
 
 - name: download proxychains-ng
+  environment: "{{ proxy_env }}"
   shell: |
     wget -c http://springdale.math.ias.edu/data/puias/unsupported/7/x86_64/proxychains-ng-4.11-1.sdl7.x86_64.rpm
     rpm -ivh proxychains-ng-4.11-1.sdl7.x86_64.rpm
   args:
     chdir: /root/
     creates: /bin/proxychains4
-  environment: "{{ proxy_env }}"
 - name: config proxychains-ng
   copy:
     src: etc/proxychains.conf
@@ -202,10 +203,10 @@
 ######################################################
 ## install yum repo: centos-release-openstack-liberty
 - name: install yum repo for centos-release-openstack-liberty
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - centos-release-openstack-liberty
 
@@ -250,10 +251,10 @@
 
 ### install common package ###
 - name: install common package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - net-tools
     - tree
@@ -261,10 +262,10 @@
 
 ## install libvirt
 - name: install libvirt package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - libvirt
 
@@ -297,10 +298,10 @@
 
 ## install iptables
 - name: install iptables package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - iptables
     - iptables-services

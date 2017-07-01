@@ -6,8 +6,8 @@
 
 # get kubestack source code
 - name: go get kubestack
-  shell: . $HOME/.bashrc && go get github.com/hyperhq/kubestack
   environment: "{{ proxy_env }}"
+  shell: . $HOME/.bashrc && go get github.com/hyperhq/kubestack
   args:
     creates: "{{ go_path }}/src/github.com/hyperhq/kubestack"
 

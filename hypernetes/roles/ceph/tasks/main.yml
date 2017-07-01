@@ -4,20 +4,19 @@
   shell: rpm -qa | grep python2-urllib3 | wc -l
   register: python2_urllib3_installed
 - name: solve conflict between urllib3 and python2-urllib3
+  environment: "{{ proxy_env }}"
   when: python2_urllib3_installed.stdout == "0"
   pip:
     name: urllib3
     state: absent
-  environment: "{{ proxy_env }}"
 
 ###### install ceph client ######
 - name: install ceph client
+  environment: "{{ proxy_env }}"
   yum:
     name: ceph-common
     state: present
     enablerepo: ceph
-  environment: "{{ proxy_env }}"
-
 
 - name: add reset tool for ceph
   copy:

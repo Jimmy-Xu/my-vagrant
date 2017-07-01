@@ -22,10 +22,10 @@
 
 #install common package
 - name: install common package
+  environment: "{{ proxy_env }}"
   yum:
     name: "{{ item }}"
     state: present
-  environment: "{{ proxy_env }}"
   with_items:
     - ntp
     - vim

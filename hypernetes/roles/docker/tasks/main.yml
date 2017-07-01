@@ -21,43 +21,33 @@
     chdir:  /bin
     creates:  /bin/docker
 
-
-- name: Download docker-1.12.6 with check (sha256)
-  get_url:
-    url: http://mirror.centos.org/centos/7/extras/x86_64/Packages/docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    dest: /root/deps/docker/docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    #checksum: sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+- name: Download docker-1.12.6
   environment: "{{ proxy_env }}"
-- name: Download docker-client-1.12.6 with check (sha256)
   get_url:
-    url: http://mirror.centos.org/centos/7/extras/x86_64/Packages/docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    dest: /root/deps/docker/docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    #checksum: sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-  environment: "{{ proxy_env }}"
-- name: Download docker-common-1.12.6 with check (sha256)
-  get_url:
-    url: http://mirror.centos.org/centos/7/extras/x86_64/Packages/docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    dest: /root/deps/docker/docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-    #checksum: sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-  environment: "{{ proxy_env }}"
+    url: "http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item.name }}"
+    dest: /root/deps/docker
+    checksum: "{{ item.checksum }}"
+  with_items:
+    - { name: "docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm", checksum: "md5:74eddccc69c1f184614bb109d91d84f5" }
+    - { name: "docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm", checksum: "md5:0d739d7c9f5fa0f1c746b34999823766" }
+    - { name: "docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm", checksum: "md5:6ad2a0d3aae91e7d984aeb993dc64a34" }
 
 - name: install docker
-  shell: yum install -y *.rpm
   environment: "{{ proxy_env }}"
-  args:
-    chdir: /root/deps/docker
-    creates: /bin/docker-current
-
+  yum:
+    name: "/root/deps/docker/{{ item }}"
+    state: present
+  with_items:
+    - "docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
+    - "docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
+    - "docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
 
 # - name: install docker
-#   yum:
-#     name: "http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item }}"
-#     state: present
 #   environment: "{{ proxy_env }}"
-#   with_items:
-#     - docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-#     - docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
-#     - docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm
+#   shell: yum install -y *.rpm
+#   args:
+#     chdir: /root/deps/docker
+#     creates: /bin/docker-current
 
 
 - name: copy script for docker0

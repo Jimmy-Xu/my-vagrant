@@ -10,13 +10,13 @@
   register: golang_tgz
 - debug: msg={{ golang_tgz.stdout }}
 - name: wget go binary
+  environment: "{{ proxy_env }}"
+  when: golang_tgz.stdout == "0"
   get_url:
     url: "http://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
     dest: /root/deps
     mode: 0644
     checksum: md5:9d3f16cc02f9198b74a24e3a35823b36
-  when: golang_tgz.stdout == "0"
-  environment: "{{ proxy_env }}"
 
 - name: unarchive golang
   unarchive:
@@ -45,8 +45,8 @@
   yum: name=mercurial state=latest
 
 - name: go get gocode
-  shell: . $HOME/.bashrc && go get github.com/nsf/gocode
   environment: "{{ proxy_env }}"
+  shell: . $HOME/.bashrc && go get github.com/nsf/gocode
   args:
     creates: "{{ go_path }}/src/github.com/nsf/gocode"
 
@@ -54,7 +54,7 @@
 #   shell: . $HOME/.bashrc && go get code.google.com/p/rog-go/exp/cmd/godef
 
 - name: go get godep
-  shell: . $HOME/.bashrc && go get github.com/tools/godep
   environment: "{{ proxy_env }}"
+  shell: . $HOME/.bashrc && go get github.com/tools/godep
   args:
     creates: "{{ go_path }}/src/github.com/tools/godep"
