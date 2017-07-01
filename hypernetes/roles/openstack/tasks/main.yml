@@ -28,15 +28,44 @@
     - python-openstackclient
     - erlang
     - ruby
+
+- name: check /root/deps/packstack.ok
+  shell: ls /root/deps/packstack.ok 2>/dev/null | wc -l
+  register: packstack_ok_exist
+- name: remove some service package if /root/deps/packstack.ok not exist
+  when: packstack_ok_exist.stdout == "0"
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items:
     - httpd
     - haproxy
     - redis
     - memcached
     - mongodb-server
+    - mariadb-server
+    - mariadb-server-galera
 
-- name: check env for install openstack
+- name: remove service package dir if /root/deps/packstack.ok not exist
+  when: packstack_ok_exist.stdout == "0"
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/bin/mysql
+    - /etc/my.cnf
+    - /var/lib/mysql
+    - /usr/lib64/mysql
+    - /sbin/httpd
+    - /etc/httpd
+    - /var/log/httpd
+    - /usr/lib64/httpd
+    - /run/httpd
+
+
+- name: check old installer for openstack
   shell: |
-      (ps -ef | grep  "puppet.*packstack" | grep -v grep) || echo OK ;
+      (ps -ef | grep  "puppet.*packstack" | grep -v grep) && exit 1 || echo OK ;
 
 ###### run install openstack ######
 # ensure "mariadb-server" isn't installed before start packstack
@@ -46,7 +75,7 @@
   environment: "{{ proxy_env }}"
   shell: |
     env;
-    ((rpm -qa | grep mariadb-server) && yum remove -y mariadb-server || echo mariadb-server not installed) && packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
+    packstack --answer-file=/root/deps/my_answer.txt && touch /root/deps/packstack.ok
   args:
     chdir: /root
     creates: /root/deps/packstack.ok

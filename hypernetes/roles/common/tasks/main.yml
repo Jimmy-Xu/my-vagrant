@@ -71,6 +71,7 @@
     state: started
     enabled: true
 
+# append dns server 114.114.114.114
 - name: create /etc/resolv.conf.d dir
   file:
     path: /etc/resolv.conf.d
@@ -82,6 +83,16 @@
 - name: append dns to resolv.conf
   shell: grep 'nameserver 114.114.114.114' /etc/resolv.conf || echo 'nameserver 114.114.114.114' >> /etc/resolv.conf
 
+# patch /var/log/message flooded with systemd messages
+- name: config for rsyslog
+  copy:
+    src: etc/rsyslog.d/ignore-systemd-session-slice.conf
+    dest: /etc/rsyslog.d/ignore-systemd-session-slice.conf
+  notify:
+    - restart-rsyslog
+
+
+##########################################
 - name: fix yum pending transactions
   shell: yum-complete-transaction --cleanup-only ; yum history redo last -y
 

@@ -22,3 +22,8 @@
   service:
     name: libvirtd
     state: restarted
+
+- name: restart-rsyslog
+  service:
+    name: rsyslog
+    state: restarted
