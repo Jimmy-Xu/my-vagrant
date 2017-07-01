@@ -1,5 +1,5 @@
 Host *
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
-   #ServerAliveInterval 5
-   #ServerAliveCountMax 2
+   ServerAliveInterval 10
+   ServerAliveCountMax 10

@@ -82,6 +82,9 @@
 - name: append dns to resolv.conf
   shell: grep 'nameserver 114.114.114.114' /etc/resolv.conf || echo 'nameserver 114.114.114.114' >> /etc/resolv.conf
 
+- name: fix yum pending transactions
+  shell: yum-complete-transaction --cleanup-only ; yum history redo last -y
+
 ## install yum repo: epel
 - name: install yum repo for epel-release
   environment: "{{ proxy_env }}"

@@ -157,6 +157,7 @@ Subsystem	sftp	/usr/libexec/openssh/sftp-server
 UseDNS no
 GSSAPIAuthentication no
 AddressFamily inet
-ClientAliveInterval 10
+TCPKeepAlive yes
+ClientAliveInterval 5
 ClientAliveCountMax 5
 MaxSessions 50
