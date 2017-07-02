@@ -1,6 +1,10 @@
 ---
 ## show env
-- debug: msg={{ proxy_env }}
+- debug: msg="{{ proxy_env }}"
+
+#set hostname( config.vm.hostname in Vagrantfile)
+# - name: set hostname
+#   hostname: name="{{ h8s_hostname }}"
 
 ## patch for ssh
 - name: solve ssh slow
@@ -70,6 +74,13 @@
     name: network
     state: started
     enabled: true
+
+- name: set eth1 ip
+  template:
+    src: etc/sysconfig/network-scripts/ifcfg-eth1
+    dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+  notify:
+    - restart-network
 
 # append dns server 114.114.114.114
 - name: create /etc/resolv.conf.d dir
@@ -200,6 +211,7 @@
     - autoconf
     - screen
     - multitail
+    - xterm
 
 - name: download proxychains-ng
   environment: "{{ proxy_env }}"

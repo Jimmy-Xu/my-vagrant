@@ -1,5 +1,6 @@
 # virbr1 in host os
 virbr1_ip: 192.168.121.1
+eth1_ip: 192.168.121.9
 
 # virbr0 in VM
 virbr0_ip:  192.168.222.1

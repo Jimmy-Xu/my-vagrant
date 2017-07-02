@@ -1,9 +1,5 @@
 ---
 
-#set hostname
-- name: set hostname
-  hostname: name="{{ h8s_hostname }}"
-
 #generate h8s_deploy_env
 - name: generate deploy config file
   template:

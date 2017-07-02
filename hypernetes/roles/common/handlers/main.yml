@@ -27,3 +27,8 @@
   service:
     name: rsyslog
     state: restarted
+
+- name: restart-network
+  service:
+    name: network
+    state: restarted

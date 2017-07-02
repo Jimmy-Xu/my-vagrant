@@ -250,7 +250,7 @@ function ensure_dependency(){
     fi
     echo "-----------------------------"
     echo "[for libvirt] ensure vagrant plugin "
-    for p in vagrant-libvirt vagrant-mutate
+    for p in vagrant-libvirt vagrant-mutate vagrant-triggers
     do
       echo "[for libvirt] ensure vagrant plugin : ${p} "
       vagrant plugin list | grep ${p} >/dev/null 2>&1

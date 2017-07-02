@@ -39,7 +39,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
   config.vm.box = "centos/7"
-  #config.vm.hostname = "h8s-single"
+  config.vm.hostname = "h8s-single"
+  config.vm.post_up_message = "========== Start up! =========="
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -50,16 +51,33 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
+  #config.vm.network "forwarded_port", id: "ssh", guest: 22, host: 2222, auto_correct: true
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  config.vm.network "private_network", ip: "192.168.121.9", :bridge => 'virbr1'
+
+  eth1_ip = "192.168.121.9"
+  config.vm.network "private_network", ip: eth1_ip, :bridge => 'virbr1'
 
   # REF: https://www.vagrantup.com/docs/vagrantfile/ssh_settings.html
-  config.ssh.host = "192.168.121.9"     # ssh to VM via static ip,
-                                        #use `ssh-keygen -R 192.168.121.9` to remove cached key in ~/.ssh/known_hosts in host os
   config.ssh.port = 22
   config.ssh.keep_alive = true
+
+  # config config.ssh.host
+  config.vm.networks.each do |type, options|
+    if type == :private_network
+      puts "==network_type==: #{type} #{options}"
+      check_ip = %Q(ping -c3 -W1 #{eth1_ip})
+      output = `#{check_ip}`
+      if $?.to_i == 0
+        config.ssh.host = eth1_ip  # ssh to VM via static ip,
+                                   # use `ssh-keygen -R 192.168.121.9` to remove cached key in ~/.ssh/known_hosts in host os
+        puts "== config.ssh.host == : (use eth1 - static ip)", config.ssh.host
+      else
+        puts "== config.ssh.host == : (use eth0 - dhcp)"
+      end
+    end
+  end
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on

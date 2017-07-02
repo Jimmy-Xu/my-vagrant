@@ -51,6 +51,8 @@ Run hypernetes all in one VM
 
 > config file: group_vars/all/`vars_file.yml`
 
+> modify `eth1_ip` in Vagrantfile and group_vars/all/`vars_file.yml`, default is 192.168.121.9
+
 ## prepare pool
 
 > run in host os

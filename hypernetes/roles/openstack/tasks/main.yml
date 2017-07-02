@@ -9,6 +9,12 @@
   with_fileglob:
     - tools/*
 
+- name: Make sure we have yum-utils
+  yum: name=yum-utils state=latest
+
+- name: Make sure we have yum-plugin-priorities
+  yum: name=yum-plugin-priorities state=latest
+
 #generate my_answer.txt
 - name: generate my_answer.txt
   template:
