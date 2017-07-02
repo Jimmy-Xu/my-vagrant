@@ -5,9 +5,11 @@ Run image-service in a VM
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [dependence](#dependence)
-- [usage](#usage)
+- [Ref](#ref)
+- [Dependence](#dependence)
+- [Usage](#usage)
 	- [start vm](#start-vm)
+		- [FAQ](#faq)
 	- [enter vm](#enter-vm)
 		- [enter vm by vagrant](#enter-vm-by-vagrant)
 		- [enter vm by virsh](#enter-vm-by-virsh)
@@ -18,10 +20,17 @@ Run image-service in a VM
 		- [check mongo service](#check-mongo-service)
 		- [check image service](#check-image-service)
 	- [test with image-service](#test-with-image-service)
+- [FAQ](#faq)
+	- [yum install python-urllib3 failed](#yum-install-python-urllib3-failed)
+	- [docker-py not found when start docker container](#docker-py-not-found-when-start-docker-container)
+	- [start docker container failed](#start-docker-container-failed)
 
 <!-- /TOC -->
 
-# dependence
+# Ref
+- https://www.vagrantup.com/docs/provisioning/ansible.html
+
+# Dependence
 
 |    package     |           version        |
 |      ---       |           ---            |
@@ -35,7 +44,7 @@ Run image-service in a VM
 | Libvirt        | 2.0.0                    |
 | Qemu           | 2.4.1                    |
 
-# usage
+# Usage
 
 ## start vm
 

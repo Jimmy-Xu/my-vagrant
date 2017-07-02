@@ -3,8 +3,11 @@
 ### start all vms
 
 ```shell
-//usage
-sudo ./util_centos.sh
+
+$ sudo vagrant box add centos/7 --provider=libvirt
+
+//usage(run as root)
+$ sudo ./util_centos.sh
   usage: ./util_centos.sh <command>
   <command>:
     run
@@ -476,4 +479,40 @@ $ sudo virsh console 6
   Password:
   [vagrant@ceph-client0 ~]$ ip addr show eth0
   [vagrant@ceph-client0 ~]$ dhclient eth0
+```
+
+
+# FAQ
+
+## wait_for timeout
+```
+//Error message
+Retryable exception raised: #<Fog::Errors::TimeoutError: The specified wait_for timeout (2 seconds) was exceeded>
+
+//Solution:
+
+////get ssh info
+$ vagrant  ssh-config                                                             
+Host client0
+  HostName 192.168.121.119
+  User vagrant
+  Port 22
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /home/xjimmy/.vagrant.d/insecure_private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+
+$ sudo virsh list
+$ sudo virsh console 2
+$ sudo -s
+$ sudo dhclient eth0
+$ ip addr #get ip of eth0
+
+$ ssh -i /home/xjimmy/.vagrant.d/insecure_private_key vagrant@{ip of eth0} -p 22
+
+//Send shutdown command to your VM (virtual machine)
+//Run the command again: vagrant up
+
 ```
