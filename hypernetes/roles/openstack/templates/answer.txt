@@ -277,11 +277,11 @@ CONFIG_MARIADB_HOST={{ ansible_eth1.ipv4.address }}
 CONFIG_MARIADB_USER=root
 
 # Password for the MariaDB administrative user.
-CONFIG_MARIADB_PW=6baec17f3ecb40e0
+CONFIG_MARIADB_PW=6d83847864aa4750
 
 # Password to use for the Identity service (keystone) to access the
 # database.
-CONFIG_KEYSTONE_DB_PW=7ebeba6d0ac74667
+CONFIG_KEYSTONE_DB_PW=ff35cda56f9c4010
 
 # Enter y if cron job for removing soft deleted DB rows should be
 # created.
@@ -292,7 +292,7 @@ CONFIG_KEYSTONE_DB_PURGE_ENABLE=True
 CONFIG_KEYSTONE_REGION=RegionOne
 
 # Token to use for the Identity service API.
-CONFIG_KEYSTONE_ADMIN_TOKEN=f5d7843a4b79403b85955c5a28445a74
+CONFIG_KEYSTONE_ADMIN_TOKEN=0e597d22a3f546ecb1424f530657ca08
 
 # Email address for the Identity service 'admin' user.  Defaults to
 CONFIG_KEYSTONE_ADMIN_EMAIL=root@localhost
@@ -302,10 +302,10 @@ CONFIG_KEYSTONE_ADMIN_EMAIL=root@localhost
 CONFIG_KEYSTONE_ADMIN_USERNAME=admin
 
 # Password to use for the Identity service 'admin' user.
-CONFIG_KEYSTONE_ADMIN_PW={{ keystone_admin_pw }}
+CONFIG_KEYSTONE_ADMIN_PW=b093db177f574197
 
 # Password to use for the Identity service 'demo' user.
-CONFIG_KEYSTONE_DEMO_PW={{ keystone_demo_pw }}
+CONFIG_KEYSTONE_DEMO_PW=33a6085bab724ab4
 
 # Identity service API version string. ['v2.0', 'v3']
 CONFIG_KEYSTONE_API_VERSION=v2.0
@@ -491,11 +491,11 @@ CONFIG_KEYSTONE_LDAP_TLS_REQ_CERT=demand
 
 # Password to use for the Image service (glance) to access the
 # database.
-CONFIG_GLANCE_DB_PW=21f22cc25cb64d2c
+CONFIG_GLANCE_DB_PW=ee69a0635a9c4015
 
 # Password to use for the Image service to authenticate with the
 # Identity service.
-CONFIG_GLANCE_KS_PW=21da8609347b428b
+CONFIG_GLANCE_KS_PW=88983e45c0d34389
 
 # Storage backend for the Image service (controls how the Image
 # service stores disk images). Valid options are: file or swift
@@ -506,7 +506,7 @@ CONFIG_GLANCE_BACKEND=file
 
 # Password to use for the Block Storage service (cinder) to access
 # the database.
-CONFIG_CINDER_DB_PW=f205b30d0d234640
+CONFIG_CINDER_DB_PW=4f85789aba4d4f89
 
 # Enter y if cron job for removing soft deleted DB rows should be
 # created.
@@ -514,7 +514,7 @@ CONFIG_CINDER_DB_PURGE_ENABLE=True
 
 # Password to use for the Block Storage service to authenticate with
 # the Identity service.
-CONFIG_CINDER_KS_PW=706a7a91128a4b87
+CONFIG_CINDER_KS_PW=fcb7995b40c74d55
 
 # Storage backend to use for the Block Storage service; valid options
 # are: lvm, gluster, nfs, vmdk, netapp. ['lvm', 'gluster', 'nfs',
@@ -666,6 +666,223 @@ CONFIG_CINDER_NETAPP_WEBSERVICE_PATH=/devmgr/v2
 # separated list of disk pool names to be used for provisioning.
 # Defaults to ''.
 CONFIG_CINDER_NETAPP_STORAGE_POOLS=
+
+# Password to use for OpenStack Bare Metal Provisioning (ironic) to
+# access the database.
+CONFIG_IRONIC_DB_PW=PW_PLACEHOLDER
+
+# Password to use for OpenStack Bare Metal Provisioning to
+# authenticate with the Identity service.
+CONFIG_IRONIC_KS_PW=PW_PLACEHOLDER
+
+# Enter y if cron job for removing soft deleted DB rows should be
+# created.
+CONFIG_NOVA_DB_PURGE_ENABLE=True
+
+# Password to use for the Compute service (nova) to access the
+# database.
+CONFIG_NOVA_DB_PW=93187b047bc24ed5
+
+# Password to use for the Compute service to authenticate with the
+# Identity service.
+CONFIG_NOVA_KS_PW=f63efa2092c4436a
+
+# Overcommitment ratio for virtual to physical CPUs. Specify 1.0 to
+# disable CPU overcommitment.
+CONFIG_NOVA_SCHED_CPU_ALLOC_RATIO=16.0
+
+# Overcommitment ratio for virtual to physical RAM. Specify 1.0 to
+# disable RAM overcommitment.
+CONFIG_NOVA_SCHED_RAM_ALLOC_RATIO=1.5
+
+# Protocol used for instance migration. Valid options are: tcp and
+# ssh. Note that by default, the Compute user is created with the
+# /sbin/nologin shell so that the SSH protocol will not work. To make
+# the SSH protocol work, you must configure the Compute user on
+# compute hosts manually. ['tcp', 'ssh']
+CONFIG_NOVA_COMPUTE_MIGRATE_PROTOCOL=tcp
+
+# Manager that runs the Compute service.
+CONFIG_NOVA_COMPUTE_MANAGER=nova.compute.manager.ComputeManager
+
+# PEM encoded certificate to be used for ssl on the https server,
+# leave blank if one should be generated, this certificate should not
+# require a passphrase. If CONFIG_HORIZON_SSL is set to 'n' this
+# parameter is ignored.
+CONFIG_VNC_SSL_CERT=
+
+# SSL keyfile corresponding to the certificate if one was entered. If
+# CONFIG_HORIZON_SSL is set to 'n' this parameter is ignored.
+CONFIG_VNC_SSL_KEY=
+
+# Enter the PCI passthrough array of hash in JSON style for
+# controller eg. [{"vendor_id":"1234", "product_id":"5678",
+# "name":"default"}, {...}]
+CONFIG_NOVA_PCI_ALIAS=
+
+# Enter the PCI passthrough whitelist array of hash in JSON style for
+# controller eg. [{"vendor_id":"1234", "product_id":"5678",
+# "name':"default"}, {...}]
+CONFIG_NOVA_PCI_PASSTHROUGH_WHITELIST=
+
+# Private interface for flat DHCP on the Compute servers.
+CONFIG_NOVA_COMPUTE_PRIVIF=
+
+# Compute Network Manager. ['^nova\.network\.manager\.\w+Manager$']
+CONFIG_NOVA_NETWORK_MANAGER=nova.network.manager.FlatDHCPManager
+
+# Public interface on the Compute network server.
+CONFIG_NOVA_NETWORK_PUBIF={{ config_nova_network_pubif }}
+
+# Private interface for flat DHCP on the Compute network server.
+CONFIG_NOVA_NETWORK_PRIVIF={{ config_nova_network_privif }}
+
+# IP Range for flat DHCP. ['^[\:\.\da-fA-f]+(\/\d+){0,1}$']
+CONFIG_NOVA_NETWORK_FIXEDRANGE=192.168.32.0/22
+
+# IP Range for floating IP addresses. ['^[\:\.\da-
+# fA-f]+(\/\d+){0,1}$']
+CONFIG_NOVA_NETWORK_FLOATRANGE=10.3.4.0/22
+
+# Specify 'y' to automatically assign a floating IP to new instances.
+# ['y', 'n']
+CONFIG_NOVA_NETWORK_AUTOASSIGNFLOATINGIP=n
+
+# First VLAN for private networks (Compute networking).
+CONFIG_NOVA_NETWORK_VLAN_START=100
+
+# Number of networks to support (Compute networking).
+CONFIG_NOVA_NETWORK_NUMBER=1
+
+# Number of addresses in each private subnet (Compute networking).
+CONFIG_NOVA_NETWORK_SIZE=255
+
+# Password to use for OpenStack Networking (neutron) to authenticate
+# with the Identity service.
+CONFIG_NEUTRON_KS_PW=cc64f84db2d24c9d
+
+# The password to use for OpenStack Networking to access the
+# database.
+CONFIG_NEUTRON_DB_PW=ede6bea9da164b26
+
+# The name of the Open vSwitch bridge (or empty for linuxbridge) for
+# the OpenStack Networking L3 agent to use for external  traffic.
+# Specify 'provider' if you intend to use a provider network to handle
+# external traffic.
+CONFIG_NEUTRON_L3_EXT_BRIDGE=br-ex
+
+# Password for the OpenStack Networking metadata agent.
+CONFIG_NEUTRON_METADATA_PW=f5a334f6654b4f0f
+
+# Specify 'y' to install OpenStack Networking's Load-Balancing-
+# as-a-Service (LBaaS). ['y', 'n']
+CONFIG_LBAAS_INSTALL={{ config_lbaas_install }}
+
+# Specify 'y' to install OpenStack Networking's L3 Metering agent
+# ['y', 'n']
+CONFIG_NEUTRON_METERING_AGENT_INSTALL={{ config_neutron_metering_agent_install }}
+
+# Specify 'y' to configure OpenStack Networking's Firewall-
+# as-a-Service (FWaaS). ['y', 'n']
+CONFIG_NEUTRON_FWAAS={{ config_neutron_fwaas }}
+
+# Specify 'y' to configure OpenStack Networking's VPN-as-a-Service
+# (VPNaaS). ['y', 'n']
+CONFIG_NEUTRON_VPNAAS=n
+
+# Comma-separated list of network-type driver entry points to be
+# loaded from the neutron.ml2.type_drivers namespace. ['local',
+# 'flat', 'vlan', 'gre', 'vxlan']
+CONFIG_NEUTRON_ML2_TYPE_DRIVERS=vxlan
+
+# Comma-separated, ordered list of network types to allocate as
+# tenant networks. The 'local' value is only useful for single-box
+# testing and provides no connectivity between hosts. ['local',
+# 'vlan', 'gre', 'vxlan']
+CONFIG_NEUTRON_ML2_TENANT_NETWORK_TYPES=vxlan
+
+# Comma-separated ordered list of networking mechanism driver entry
+# points to be loaded from the neutron.ml2.mechanism_drivers
+# namespace. ['logger', 'test', 'linuxbridge', 'openvswitch',
+# 'hyperv', 'ncs', 'arista', 'cisco_nexus', 'mlnx', 'l2population',
+# 'sriovnicswitch']
+CONFIG_NEUTRON_ML2_MECHANISM_DRIVERS=openvswitch
+
+# Comma-separated list of physical_network names with which flat
+# networks can be created. Use * to allow flat networks with arbitrary
+# physical_network names.
+CONFIG_NEUTRON_ML2_FLAT_NETWORKS=*
+
+# Comma-separated list of <physical_network>:<vlan_min>:<vlan_max> or
+# <physical_network> specifying physical_network names usable for VLAN
+# provider and tenant networks, as well as ranges of VLAN tags on each
+# available for allocation to tenant networks.
+CONFIG_NEUTRON_ML2_VLAN_RANGES=
+
+# Comma-separated list of <tun_min>:<tun_max> tuples enumerating
+# ranges of GRE tunnel IDs that are available for tenant-network
+# allocation. A tuple must be an array with tun_max +1 - tun_min >
+# 1000000.
+CONFIG_NEUTRON_ML2_TUNNEL_ID_RANGES=
+
+# Comma-separated list of addresses for VXLAN multicast group. If
+# left empty, disables VXLAN from sending allocate broadcast traffic
+# (disables multicast VXLAN mode). Should be a Multicast IP (v4 or v6)
+# address.
+CONFIG_NEUTRON_ML2_VXLAN_GROUP=
+
+# Comma-separated list of <vni_min>:<vni_max> tuples enumerating
+# ranges of VXLAN VNI IDs that are available for tenant network
+# allocation. Minimum value is 0 and maximum value is 16777215.
+CONFIG_NEUTRON_ML2_VNI_RANGES=10:100
+
+# Name of the L2 agent to be used with OpenStack Networking.
+# ['linuxbridge', 'openvswitch']
+CONFIG_NEUTRON_L2_AGENT=openvswitch
+
+# Comma separated list of supported PCI vendor devices defined by
+# vendor_id:product_id according to the PCI ID Repository.
+CONFIG_NEUTRON_ML2_SUPPORTED_PCI_VENDOR_DEVS=['15b3:1004', '8086:10ca']
+
+# Specify 'y' if the sriov agent is required
+CONFIG_NEUTRON_ML2_SRIOV_AGENT_REQUIRED=n
+
+# Comma-separated list of interface mappings for the OpenStack
+# Networking ML2 SRIOV agent. Each tuple in the list must be in the
+# format <physical_network>:<net_interface>. Example:
+# physnet1:eth1,physnet2:eth2,physnet3:eth3.
+CONFIG_NEUTRON_ML2_SRIOV_INTERFACE_MAPPINGS=
+
+# Comma-separated list of interface mappings for the OpenStack
+# Networking linuxbridge plugin. Each tuple in the list must be in the
+# format <physical_network>:<net_interface>. Example:
+# physnet1:eth1,physnet2:eth2,physnet3:eth3.
+CONFIG_NEUTRON_LB_INTERFACE_MAPPINGS=
+
+# Comma-separated list of bridge mappings for the OpenStack
+# Networking Open vSwitch plugin. Each tuple in the list must be in
+# the format <physical_network>:<ovs_bridge>. Example: physnet1:br-
+# eth1,physnet2:br-eth2,physnet3:br-eth3
+CONFIG_NEUTRON_OVS_BRIDGE_MAPPINGS=
+
+# Comma-separated list of colon-separated Open vSwitch
+# <bridge>:<interface> pairs. The interface will be added to the
+# associated bridge. If you desire the bridge to be persistent a value
+# must be added to this directive, also
+# CONFIG_NEUTRON_OVS_BRIDGE_MAPPINGS must be set in order to create
+# the proper port. This can be achieved from the command line by
+# issuing the following command: packstack --allinone --os-neutron-
+# ovs-bridge-mappings=ext-net:br-ex --os-neutron-ovs-bridge-interfaces
+# =br-ex:eth0
+CONFIG_NEUTRON_OVS_BRIDGE_IFACES=
+
+# Interface for the Open vSwitch tunnel. Packstack overrides the IP
+# address used for tunnels on this hypervisor to the IP found on the
+# specified interface (for example, eth1).
+CONFIG_NEUTRON_OVS_TUNNEL_IF=
+
+# VXLAN UDP port.
+CONFIG_NEUTRON_OVS_VXLAN_UDP_PORT=4789
 
 # Password to use for the OpenStack File Share service (manila) to
 # access the database.
@@ -819,228 +1036,11 @@ CONFIG_MANILA_GLUSTERFS_PATH_TO_PRIVATE_KEY=
 # Remote Ganesha server node's IP address.
 CONFIG_MANILA_GLUSTERFS_GANESHA_SERVER_IP=
 
-# Password to use for OpenStack Bare Metal Provisioning (ironic) to
-# access the database.
-CONFIG_IRONIC_DB_PW=PW_PLACEHOLDER
-
-# Password to use for OpenStack Bare Metal Provisioning to
-# authenticate with the Identity service.
-CONFIG_IRONIC_KS_PW=PW_PLACEHOLDER
-
-# Enter y if cron job for removing soft deleted DB rows should be
-# created.
-CONFIG_NOVA_DB_PURGE_ENABLE=True
-
-# Password to use for the Compute service (nova) to access the
-# database.
-CONFIG_NOVA_DB_PW=313b07a5c2694a7d
-
-# Password to use for the Compute service to authenticate with the
-# Identity service.
-CONFIG_NOVA_KS_PW=f12a8639a65342d0
-
-# Overcommitment ratio for virtual to physical CPUs. Specify 1.0 to
-# disable CPU overcommitment.
-CONFIG_NOVA_SCHED_CPU_ALLOC_RATIO=16.0
-
-# Overcommitment ratio for virtual to physical RAM. Specify 1.0 to
-# disable RAM overcommitment.
-CONFIG_NOVA_SCHED_RAM_ALLOC_RATIO=1.5
-
-# Protocol used for instance migration. Valid options are: tcp and
-# ssh. Note that by default, the Compute user is created with the
-# /sbin/nologin shell so that the SSH protocol will not work. To make
-# the SSH protocol work, you must configure the Compute user on
-# compute hosts manually. ['tcp', 'ssh']
-CONFIG_NOVA_COMPUTE_MIGRATE_PROTOCOL=tcp
-
-# Manager that runs the Compute service.
-CONFIG_NOVA_COMPUTE_MANAGER=nova.compute.manager.ComputeManager
-
-# PEM encoded certificate to be used for ssl on the https server,
-# leave blank if one should be generated, this certificate should not
-# require a passphrase. If CONFIG_HORIZON_SSL is set to 'n' this
-# parameter is ignored.
-CONFIG_VNC_SSL_CERT=
-
-# SSL keyfile corresponding to the certificate if one was entered. If
-# CONFIG_HORIZON_SSL is set to 'n' this parameter is ignored.
-CONFIG_VNC_SSL_KEY=
-
-# Enter the PCI passthrough array of hash in JSON style for
-# controller eg. [{"vendor_id":"1234", "product_id":"5678",
-# "name":"default"}, {...}]
-CONFIG_NOVA_PCI_ALIAS=
-
-# Enter the PCI passthrough whitelist array of hash in JSON style for
-# controller eg. [{"vendor_id":"1234", "product_id":"5678",
-# "name':"default"}, {...}]
-CONFIG_NOVA_PCI_PASSTHROUGH_WHITELIST=
-
-# Private interface for flat DHCP on the Compute servers.
-CONFIG_NOVA_COMPUTE_PRIVIF=
-
-# Compute Network Manager. ['^nova\.network\.manager\.\w+Manager$']
-CONFIG_NOVA_NETWORK_MANAGER=nova.network.manager.FlatDHCPManager
-
-# Public interface on the Compute network server.
-CONFIG_NOVA_NETWORK_PUBIF={{ config_nova_network_pubif }}
-
-# Private interface for flat DHCP on the Compute network server.
-CONFIG_NOVA_NETWORK_PRIVIF=
-
-# IP Range for flat DHCP. ['^[\:\.\da-fA-f]+(\/\d+){0,1}$']
-CONFIG_NOVA_NETWORK_FIXEDRANGE=192.168.32.0/22
-
-# IP Range for floating IP addresses. ['^[\:\.\da-
-# fA-f]+(\/\d+){0,1}$']
-CONFIG_NOVA_NETWORK_FLOATRANGE=10.3.4.0/22
-
-# Specify 'y' to automatically assign a floating IP to new instances.
-# ['y', 'n']
-CONFIG_NOVA_NETWORK_AUTOASSIGNFLOATINGIP=n
-
-# First VLAN for private networks (Compute networking).
-CONFIG_NOVA_NETWORK_VLAN_START=100
-
-# Number of networks to support (Compute networking).
-CONFIG_NOVA_NETWORK_NUMBER=1
-
-# Number of addresses in each private subnet (Compute networking).
-CONFIG_NOVA_NETWORK_SIZE=255
-
-# Password to use for OpenStack Networking (neutron) to authenticate
-# with the Identity service.
-CONFIG_NEUTRON_KS_PW=747d54e87a2d4484
-
-# The password to use for OpenStack Networking to access the
-# database.
-CONFIG_NEUTRON_DB_PW=cc9ed2254e4d46e7
-
-# The name of the Open vSwitch bridge (or empty for linuxbridge) for
-# the OpenStack Networking L3 agent to use for external  traffic.
-# Specify 'provider' if you intend to use a provider network to handle
-# external traffic.
-CONFIG_NEUTRON_L3_EXT_BRIDGE=br-ex
-
-# Password for the OpenStack Networking metadata agent.
-CONFIG_NEUTRON_METADATA_PW=e28b4365889e448e
-
-# Specify 'y' to install OpenStack Networking's Load-Balancing-
-# as-a-Service (LBaaS). ['y', 'n']
-CONFIG_LBAAS_INSTALL={{ config_lbaas_install }}
-
-# Specify 'y' to install OpenStack Networking's L3 Metering agent
-# ['y', 'n']
-CONFIG_NEUTRON_METERING_AGENT_INSTALL={{ config_neutron_metering_agent_install }}
-
-# Specify 'y' to configure OpenStack Networking's Firewall-
-# as-a-Service (FWaaS). ['y', 'n']
-CONFIG_NEUTRON_FWAAS={{ config_neutron_fwaas }}
-
-# Specify 'y' to configure OpenStack Networking's VPN-as-a-Service
-# (VPNaaS). ['y', 'n']
-CONFIG_NEUTRON_VPNAAS=n
-
-# Comma-separated list of network-type driver entry points to be
-# loaded from the neutron.ml2.type_drivers namespace. ['local',
-# 'flat', 'vlan', 'gre', 'vxlan']
-CONFIG_NEUTRON_ML2_TYPE_DRIVERS=vxlan
-
-# Comma-separated, ordered list of network types to allocate as
-# tenant networks. The 'local' value is only useful for single-box
-# testing and provides no connectivity between hosts. ['local',
-# 'vlan', 'gre', 'vxlan']
-CONFIG_NEUTRON_ML2_TENANT_NETWORK_TYPES=vxlan
-
-# Comma-separated ordered list of networking mechanism driver entry
-# points to be loaded from the neutron.ml2.mechanism_drivers
-# namespace. ['logger', 'test', 'linuxbridge', 'openvswitch',
-# 'hyperv', 'ncs', 'arista', 'cisco_nexus', 'mlnx', 'l2population',
-# 'sriovnicswitch']
-CONFIG_NEUTRON_ML2_MECHANISM_DRIVERS=openvswitch
-
-# Comma-separated list of physical_network names with which flat
-# networks can be created. Use * to allow flat networks with arbitrary
-# physical_network names.
-CONFIG_NEUTRON_ML2_FLAT_NETWORKS=*
-
-# Comma-separated list of <physical_network>:<vlan_min>:<vlan_max> or
-# <physical_network> specifying physical_network names usable for VLAN
-# provider and tenant networks, as well as ranges of VLAN tags on each
-# available for allocation to tenant networks.
-CONFIG_NEUTRON_ML2_VLAN_RANGES=
-
-# Comma-separated list of <tun_min>:<tun_max> tuples enumerating
-# ranges of GRE tunnel IDs that are available for tenant-network
-# allocation. A tuple must be an array with tun_max +1 - tun_min >
-# 1000000.
-CONFIG_NEUTRON_ML2_TUNNEL_ID_RANGES=
-
-# Comma-separated list of addresses for VXLAN multicast group. If
-# left empty, disables VXLAN from sending allocate broadcast traffic
-# (disables multicast VXLAN mode). Should be a Multicast IP (v4 or v6)
-# address.
-CONFIG_NEUTRON_ML2_VXLAN_GROUP=
-
-# Comma-separated list of <vni_min>:<vni_max> tuples enumerating
-# ranges of VXLAN VNI IDs that are available for tenant network
-# allocation. Minimum value is 0 and maximum value is 16777215.
-CONFIG_NEUTRON_ML2_VNI_RANGES=10:100
-
-# Name of the L2 agent to be used with OpenStack Networking.
-# ['linuxbridge', 'openvswitch']
-CONFIG_NEUTRON_L2_AGENT=openvswitch
-
-# Comma separated list of supported PCI vendor devices defined by
-# vendor_id:product_id according to the PCI ID Repository.
-CONFIG_NEUTRON_ML2_SUPPORTED_PCI_VENDOR_DEVS=['15b3:1004', '8086:10ca']
-
-# Specify 'y' if the sriov agent is required
-CONFIG_NEUTRON_ML2_SRIOV_AGENT_REQUIRED=n
-
-# Comma-separated list of interface mappings for the OpenStack
-# Networking ML2 SRIOV agent. Each tuple in the list must be in the
-# format <physical_network>:<net_interface>. Example:
-# physnet1:eth1,physnet2:eth2,physnet3:eth3.
-CONFIG_NEUTRON_ML2_SRIOV_INTERFACE_MAPPINGS=
-
-# Comma-separated list of interface mappings for the OpenStack
-# Networking linuxbridge plugin. Each tuple in the list must be in the
-# format <physical_network>:<net_interface>. Example:
-# physnet1:eth1,physnet2:eth2,physnet3:eth3.
-CONFIG_NEUTRON_LB_INTERFACE_MAPPINGS=
-
-# Comma-separated list of bridge mappings for the OpenStack
-# Networking Open vSwitch plugin. Each tuple in the list must be in
-# the format <physical_network>:<ovs_bridge>. Example: physnet1:br-
-# eth1,physnet2:br-eth2,physnet3:br-eth3
-CONFIG_NEUTRON_OVS_BRIDGE_MAPPINGS=
-
-# Comma-separated list of colon-separated Open vSwitch
-# <bridge>:<interface> pairs. The interface will be added to the
-# associated bridge. If you desire the bridge to be persistent a value
-# must be added to this directive, also
-# CONFIG_NEUTRON_OVS_BRIDGE_MAPPINGS must be set in order to create
-# the proper port. This can be achieved from the command line by
-# issuing the following command: packstack --allinone --os-neutron-
-# ovs-bridge-mappings=ext-net:br-ex --os-neutron-ovs-bridge-interfaces
-# =br-ex:eth0
-CONFIG_NEUTRON_OVS_BRIDGE_IFACES=
-
-# Interface for the Open vSwitch tunnel. Packstack overrides the IP
-# address used for tunnels on this hypervisor to the IP found on the
-# specified interface (for example, eth1).
-CONFIG_NEUTRON_OVS_TUNNEL_IF=
-
-# VXLAN UDP port.
-CONFIG_NEUTRON_OVS_VXLAN_UDP_PORT=4789
-
 # Specify 'y' to set up Horizon communication over https. ['y', 'n']
 CONFIG_HORIZON_SSL=n
 
 # Secret key to use for Horizon Secret Encryption Key.
-CONFIG_HORIZON_SECRET_KEY=faae9d6ea04a4df7b998e86c0a9efa1f
+CONFIG_HORIZON_SECRET_KEY=172b23b295d541fba2b9c6b3550cb267
 
 # PEM-encoded certificate to be used for SSL connections on the https
 # server. To generate a certificate, leave blank.
@@ -1054,7 +1054,7 @@ CONFIG_HORIZON_SSL_CACERT=
 
 # Password to use for the Object Storage service to authenticate with
 # the Identity service.
-CONFIG_SWIFT_KS_PW=1b532f02db474507
+CONFIG_SWIFT_KS_PW=1d12698737c647fd
 
 # Comma-separated list of devices to use as storage device for Object
 # Storage. Each entry must take the format /path/to/dev (for example,
@@ -1078,7 +1078,7 @@ CONFIG_SWIFT_STORAGE_FSTYPE=ext4
 # Custom seed number to use for swift_hash_path_suffix in
 # /etc/swift/swift.conf. If you do not provide a value, a seed number
 # is automatically generated.
-CONFIG_SWIFT_HASH=79882acfc0924885
+CONFIG_SWIFT_HASH=e6b7c8a00c5d4891
 
 # Size of the Object Storage loopback file storage device.
 CONFIG_SWIFT_STORAGE_SIZE=2G
@@ -1089,7 +1089,7 @@ CONFIG_HEAT_DB_PW=PW_PLACEHOLDER
 
 # Encryption key to use for authentication in the Orchestration
 # database (16, 24, or 32 chars).
-CONFIG_HEAT_AUTH_ENC_KEY=fba081a17c7b4efe
+CONFIG_HEAT_AUTH_ENC_KEY=fa6ce7512d1d4f8b
 
 # Password to use for the Orchestration service to authenticate with
 # the Identity service.
@@ -1159,20 +1159,12 @@ CONFIG_PROVISION_TEMPEST_REPO_REVISION=master
 # for virtual machines). ['y', 'n']
 CONFIG_PROVISION_OVS_BRIDGE=y
 
-# Password to use for OpenStack Data Processing (sahara) to access
-# the database.
-CONFIG_SAHARA_DB_PW=PW_PLACEHOLDER
-
-# Password to use for OpenStack Data Processing to authenticate with
-# the Identity service.
-CONFIG_SAHARA_KS_PW=PW_PLACEHOLDER
-
 # Secret key for signing Telemetry service (ceilometer) messages.
-CONFIG_CEILOMETER_SECRET=ee2e5c966d1e4749
+CONFIG_CEILOMETER_SECRET=51ad630f035e4a6c
 
 # Password to use for Telemetry to authenticate with the Identity
 # service.
-CONFIG_CEILOMETER_KS_PW=9d0fb81f726b44eb
+CONFIG_CEILOMETER_KS_PW=290d056a8d424472
 
 # Backend driver for Telemetry's group membership coordination.
 # ['redis', 'none']
@@ -1209,6 +1201,14 @@ CONFIG_REDIS_SENTINEL_QUORUM=2
 # Name of the master server watched by the Redis sentinel. ['[a-z]+']
 CONFIG_REDIS_MASTER_NAME=mymaster
 
+# Password to use for OpenStack Data Processing (sahara) to access
+# the database.
+CONFIG_SAHARA_DB_PW=PW_PLACEHOLDER
+
+# Password to use for OpenStack Data Processing to authenticate with
+# the Identity service.
+CONFIG_SAHARA_KS_PW=PW_PLACEHOLDER
+
 # Password to use for OpenStack Database-as-a-Service (trove) to
 # access the database.
 CONFIG_TROVE_DB_PW=PW_PLACEHOLDER
@@ -1230,7 +1230,7 @@ CONFIG_TROVE_NOVA_TENANT=services
 CONFIG_TROVE_NOVA_PW=PW_PLACEHOLDER
 
 # Password of the nagiosadmin user on the Nagios server.
-CONFIG_NAGIOS_PW=e76bb154349c4faf
+CONFIG_NAGIOS_PW=30b13bbdef0e4e8c
 
 
-CONFIG_SERVICE_WORKERS={{ conifg_service_worker }}
+CONFIG_SERVICE_WORKERS={{ config_service_worker }}

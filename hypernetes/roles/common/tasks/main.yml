@@ -36,13 +36,6 @@
     job: "/bin/bash -c '(ps -ef | grep dhclient | grep -v grep) && echo dhclient is running || /sbin/dhclient eth0'"
     cron_file: ansible_dhclient-autorenew
 
-# - name: ping crontjob
-#   cron:
-#     minute: "*/1"
-#     user: root
-#     job: "/bin/bash -c '/bin/pkill ping; /bin/ping -c15 -W1 {{ virbr1_ip }}'"
-#     cron_file: ansible_ping_host
-
 #disable selinux
 - name: disable selinux
   selinux: state=disabled
@@ -75,12 +68,24 @@
     state: started
     enabled: true
 
-- name: set eth1 ip
+- name: if ifcfg-eth1 not exist, then genereate /root/reboot.required
+  shell: touch /root/reboot.required
+  args:
+    creates: /etc/sysconfig/network-scripts/ifcfg-eth1
+
+- name: config static ip for eth1
   template:
     src: etc/sysconfig/network-scripts/ifcfg-eth1
     dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+  register: ifcfg_eth1
   notify:
     - restart-network
+
+- name: please run './util_centos.sh run' again
+  meta: end_play
+  when: ifcfg_eth1.changed
+
+#######################################
 
 # append dns server 114.114.114.114
 - name: create /etc/resolv.conf.d dir
@@ -102,10 +107,18 @@
   notify:
     - restart-rsyslog
 
+- name: ensure dir /root/deps
+  file: path=/root/deps state=directory mode=0755
 
 ##########################################
+- name: config yum
+  template:
+    src: etc/yum.conf
+    dest: /etc/yum.conf
 - name: fix yum pending transactions
-  shell: yum-complete-transaction --cleanup-only ; yum history redo last -y
+  shell: |
+    yum-complete-transaction --cleanup-only
+    yum history redo last -y
 
 ## install yum repo: epel
 - name: install yum repo for epel-release
@@ -212,6 +225,8 @@
     - screen
     - multitail
     - xterm
+    - yum-plugin-priorities
+    - yum-utils
 
 - name: download proxychains-ng
   environment: "{{ proxy_env }}"
@@ -228,6 +243,13 @@
 
 ######################################################
 ## install yum repo: centos-release-openstack-liberty
+# - name: download rdo-release.rpm
+#   environment: "{{ proxy_env }}"
+#   shell: |
+#     wget -c https://repos.fedorapeople.org/repos/openstack/EOL/openstack-liberty/rdo-release-liberty-5.noarch.rpm
+#   args:
+#     chdir: /root/deps
+
 - name: install yum repo for centos-release-openstack-liberty
   environment: "{{ proxy_env }}"
   yum:

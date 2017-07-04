@@ -413,10 +413,13 @@ function show_usage(){
   cat <<EOF
   usage: ./util_centos.sh <command>
   <command>:
-    run
-    list
-    halt
-    destroy
+    run              # 'vagrant up --provision --provider=${PROVIDER}'
+    halt             # 'vagrant halt'
+    destroy          # 'vagrant destroy'
+    list             # show VM list via 'sudo vagrant list'
+    status           # show VM status via 'vagrant status'
+    ssh              # enter VM via 'vagrant ssh default'
+    console          # enter VM via 'sudo virsh console hypernetes_default'
 EOF
 }
 
@@ -431,13 +434,22 @@ case "$1" in
     vagrant_up
     ;;
   list)
-    vagrant status
+    sudo virsh list | awk 'NR==1 || /hypernetes_default/'
+    ;;
+  status)
+    vagrant status | sed -n '4,$p'
     ;;
   halt)
     vagrant halt
     ;;
   destroy)
     destroy_all
+    ;;
+  ssh)
+    vagrant ssh default
+    ;;
+  console)
+    sudo virsh console hypernetes_default
     ;;
   *)
     show_usage

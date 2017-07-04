@@ -11,6 +11,9 @@ Run hypernetes all in one VM
 - [usage](#usage)
 	- [modify config](#modify-config)
 	- [prepare pool](#prepare-pool)
+	- [config host os ssh config](#config-host-os-ssh-config)
+		- [ssh client config](#ssh-client-config)
+		- [ssh server config](#ssh-server-config)
 	- [start vm](#start-vm)
 	- [enter vm](#enter-vm)
 		- [enter vm by vagrant](#enter-vm-by-vagrant)
@@ -66,24 +69,57 @@ $ virsh pool-autostart hypernetes
 $ virsh pool-list
 ```
 
+## config host os ssh config
+
+> it will cost long time to run packstack, so it's necessary to keep ssh connection alive  
+
+### ssh client config
+
+> /etc/ssh/ssh_config or ~/.ssh/config
+
+```
+Host *
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+   ServerAliveInterval 10
+   ServerAliveCountMax 10
+```
+
+### ssh server config
+
+> /etc/ssh/sshd_config
+
+```
+UseDNS no
+GSSAPIAuthentication no
+AddressFamily inet
+TCPKeepAlive yes
+ClientAliveInterval 5
+ClientAliveCountMax 5
+MaxSessions 50
+```
+
 ## start vm
 
 ```
 //show usage
 $ ./util_centos.sh
   usage: ./util_centos.sh <command>
-  <command>:
-    run
-    list
-    halt
-    destroy
+	<command>:
+    run              # 'vagrant up --provision --provider=libvirt'
+    halt             # 'vagrant halt'
+    destroy          # 'vagrant destroy'
+    list             # show VM list via 'sudo vagrant list'
+    status           # show VM status via 'vagrant status'
+    ssh              # enter VM via 'vagrant ssh default'
+    console          # enter VM via 'sudo virsh console hypernetes_default'
 
 //start everything in one command
 $ ./util_centos.sh run
 
-// view log
-$ tail -f /var/log/messages
-$ systemctl status sslocal
+// view the following log in "guest os" during execute packstack
+$ ./util_centos.sh ssh
+[root@h8s-single ~]# multitail /var/log/messages /var/log/yum.log
 ```
 
 ## enter vm

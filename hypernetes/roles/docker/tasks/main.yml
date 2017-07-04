@@ -21,7 +21,11 @@
     chdir:  /bin
     creates:  /bin/docker
 
+- name: check /root/deps/docker/checksum.md5
+  shell: ls /root/deps/docker/checksum.md5 2>/dev/null | wc -l
+  register: docker_rpm_exist
 - name: Download docker-1.12.6
+  when: docker_rpm_exist.stdout == "0"
   environment: "{{ proxy_env }}"
   get_url:
     url: "http://mirror.centos.org/centos/7/extras/x86_64/Packages/{{ item.name }}"
@@ -32,7 +36,17 @@
     - { name: "docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm", checksum: "md5:0d739d7c9f5fa0f1c746b34999823766" }
     - { name: "docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm", checksum: "md5:6ad2a0d3aae91e7d984aeb993dc64a34" }
 
+- name: generate dokcer rpm md5
+  shell: md5sum docker-* > checksum.md5
+  args:
+    chdir: /root/deps/docker
+    creates: checksum.md5
+
+- name: check docker installed
+  shell: which docker 2>/dev/null | wc -l
+  register: docker_installed
 - name: install docker
+  when: docker_installed.stdout == "0"
   environment: "{{ proxy_env }}"
   yum:
     name: "/root/deps/docker/{{ item }}"
@@ -41,14 +55,6 @@
     - "docker-common-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
     - "docker-client-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
     - "docker-1.12.6-28.git1398f24.el7.centos.x86_64.rpm"
-
-# - name: install docker
-#   environment: "{{ proxy_env }}"
-#   shell: yum install -y *.rpm
-#   args:
-#     chdir: /root/deps/docker
-#     creates: /bin/docker-current
-
 
 - name: copy script for docker0
   copy: src={{ item }} dest=/root/ mode="0755"

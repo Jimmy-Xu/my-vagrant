@@ -35,7 +35,8 @@
   when: ceph_image.stdout != "1"
 
 ###### start ceph server in container ######
-- git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master force=yes
+- name: clone learn-ceph repo
+  git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master force=yes
   environment: "{{ proxy_env }}"
 - name: copy Dockerfile
   copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile

@@ -1,4 +1,5 @@
-config_nova_network_pubif: eth1
+config_nova_network_pubif: eth0
+config_nova_network_privif: eth1
 config_provision_demo: n
 config_swift_install: n
 config_neutron_metering_agent_install: y
@@ -6,4 +7,4 @@ config_nagios_install: n
 config_lbaas_install: y
 config_neutron_fwaas: y
 config_nova_install: n
-conifg_service_worker: 1
+config_service_worker: 1
