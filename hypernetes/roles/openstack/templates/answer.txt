@@ -506,7 +506,7 @@ CONFIG_GLANCE_BACKEND=file
 
 # Password to use for the Block Storage service (cinder) to access
 # the database.
-CONFIG_CINDER_DB_PW=4f85789aba4d4f89
+CONFIG_CINDER_DB_PW={{ config_cinder_db_pw }}
 
 # Enter y if cron job for removing soft deleted DB rows should be
 # created.
