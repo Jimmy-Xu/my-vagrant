@@ -91,9 +91,8 @@
     systemctl restart docker
 
 
-# ansible docker module required
-- name: install docker-py
+# ansible docker module required(uninstall docker-py first)
+- name: install docker for python
   pip:
-    name: docker-py
+    name: docker
     state: present
-    version: 1.10.6

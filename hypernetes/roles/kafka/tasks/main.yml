@@ -1,0 +1,81 @@
+---
+###### install jdk 1.8 ######
+- name: Download Java
+  command: 'wget -c --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"'
+  environment: "{{ proxy_env }}"
+  args:
+    chdir: /root/deps
+
+- name: Unpack archive
+  command: "tar -zxf jdk-8u131-linux-x64.tar.gz -C /opt/ creates=/opt/jdk1.8.0_131"
+  args:
+    chdir: /root/deps
+
+- name: Fix ownership
+  file: state=directory path=/opt/jdk1.8.0_131 owner=root group=root recurse=yes
+
+- name: Make Java available for system
+  command: 'alternatives --install "/usr/bin/java" "java" "/opt/jdk1.8.0_131/bin/java" 2000'
+
+###### install docker-compose ######
+- name: pip install docker-compose
+  pip:
+    name: docker-compose
+    state: present
+
+
+# pull wurstmeister/zookeeper image
+- name: check docker image 'wurstmeister/zookeeper'
+  shell: docker images | grep 'wurstmeister/zookeeper' | wc -l
+  register: zookeeper_image
+- debug: msg={{ zookeeper_image.stdout }}
+- name: pull image wurstmeister/zookeeper
+  docker_image:
+    name: wurstmeister/zookeeper
+  when: zookeeper_image.stdout != "1"
+
+# pull wurstmeister/kafka image
+- name: check docker image 'wurstmeister/kafka'
+  shell: docker images | grep 'wurstmeister/kafka' | wc -l
+  register: kafka_image
+- debug: msg={{ kafka_image.stdout }}
+- name: pull image wurstmeister/kafka
+  docker_image:
+    name: wurstmeister/kafka
+  when: kafka_image.stdout != "1"
+
+
+- docker_service:
+    project_name: prj
+    definition:
+      version: '2'
+      services:
+        zookeeper:
+          image: wurstmeister/zookeeper
+          ports:
+            - "2181:2181"
+        kafka:
+          image: wurstmeister/kafka
+          ports:
+            - "9092:9092"
+          environment:
+            KAFKA_ADVERTISED_HOST_NAME: "{{ eth1_ip }}"
+            KAFKA_CREATE_TOPICS: "test:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+          depends_on:
+            - zookeeper
+  register: output
+
+- debug:
+    var: output
+
+- assert:
+    that:
+      - "zookeeper.prj_zookeeper_1.state.running"
+      - "zookeeper.prj_zookeeper_1.state.running"
+
+- name: check kafka - list test topics
+  shell: |
+    docker exec -t prj_kafka_1 kafka-topics.sh --list test --zookeeper zookeeper
