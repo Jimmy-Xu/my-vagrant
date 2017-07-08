@@ -17,13 +17,6 @@
 - name: Make Java available for system
   command: 'alternatives --install "/usr/bin/java" "java" "/opt/jdk1.8.0_131/bin/java" 2000'
 
-###### install docker-compose ######
-- name: pip install docker-compose
-  pip:
-    name: docker-compose
-    state: present
-
-
 # pull wurstmeister/zookeeper image
 - name: check docker image 'wurstmeister/zookeeper'
   shell: docker images | grep 'wurstmeister/zookeeper' | wc -l

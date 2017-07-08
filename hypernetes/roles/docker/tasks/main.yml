@@ -107,10 +107,21 @@
     state: present
 
 # ansible docker module required(uninstall docker-py first)
-- name: install docker for python
+- name: ensure docker for python absent
   pip:
-    name: "{{ item }}"
+    name: docker
+    state: absent
+
+- name: install docker-py for python present
+  environment: "{{ proxy_env }}"
+  pip:
+    name: docker-py
     state: present
-  with_items:
-    - docker
-    - docker-py
+
+###### install docker-compose ######
+- name: install docker-compose by yum
+  environment: "{{ proxy_env }}"
+  yum:
+    name: docker-compose
+    state: present
+    enablerepo: epel
