@@ -11,14 +11,16 @@
       HTTPS_PROXY: "http://{{ virbr1_ip }}:8118"
       NO_PROXY: "localhost,127.0.0.1,/var/run/docker.sock,.edu.cn,mirrors.163.com,{{ ansible_eth0.ipv4.address }},{{ ansible_eth1.ipv4.address }},{{ h8s_hostname }}"
   roles:
-    - common
-    - base_setup
-    - docker
-    - ceph
-    - openstack
-    - cinder
-    - hyper
-    - kubestack
-    - kubenetes
-    - kafka
-    #- apirouter
+    # - common
+    # - base_setup
+    # - docker
+    # - ceph
+    - mongo
+    # - openstack
+    # - cinder
+    # - hyper
+    # - kubestack
+    # - kubenetes
+    # - kafka
+    # - apirouter
+    - imaged

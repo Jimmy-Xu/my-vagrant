@@ -1,0 +1,37 @@
+---
+###### install mongo client ######
+- name: add mongo yum repo
+  copy: src=etc/yum.repos.d/mongodb.repo dest=/etc/yum.repos.d/mongodb.repo
+
+# install mongo client
+- name: install mongo client
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mongodb-org-shell
+    - mongodb-org-server
+
+# pull mongo image
+- name: check mongo image
+  shell: docker images | grep 'mongo.*3.2.3' | wc -l
+  register: mongo_image
+- debug: msg={{ mongo_image.stdout }}
+- name: pull mongo image
+  command: docker pull mongo:3.2.3
+  when: mongo_image.stdout != "1"
+
+###### start mongo server in container ######
+- name: restart docker service
+  service: name=docker state=restarted
+- name: start mongo container
+  docker:
+    name: imaged-mongo
+    image: mongo:3.2.3
+    state: started
+    restart_policy: always
+    volumes:
+      - /var/lib/imaged/mongo:/data/db
+    ports:
+      - "27018:27017"
