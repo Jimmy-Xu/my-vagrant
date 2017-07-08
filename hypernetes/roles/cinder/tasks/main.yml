@@ -1,11 +1,11 @@
 ---
-# create pool for cinder
+## create pool for cinder
 - name: create pool for cinder
   command: ceph osd pool create cinder 256 256
 - name:
   command: ceph auth get-or-create client.cinder mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=cinder'
 
-# auth for cinder
+## auth for cinder
 - name: auth for cinder
   shell: ceph auth get-or-create client.cinder | tee /etc/ceph/ceph.client.cinder.keyring
 - name: chown for /etc/ceph/ceph.client.cinder.keyring
@@ -14,13 +14,13 @@
     owner: root
     group: cinder
 
-# config cinder
+## cinder conf
 - name: copy cinder.conf
   template:
     src: etc/cinder/cinder.conf
     dest: /etc/cinder/cinder.conf
 
-# start service
+## start service
 - name: start cinder service
   service:
     name: "{{ item }}"

@@ -90,9 +90,27 @@
     systemctl daemon-reload
     systemctl restart docker
 
+# uninstall urllib3 when python2-urllib3 not installed
+- name: check python2-urllib3
+  shell: rpm -qa | grep -E "(python2-urllib3|python-urllib3)" | wc -l
+  register: python2_urllib3_installed
+- name: solve conflict between urllib3 and python2-urllib3
+  environment: "{{ proxy_env }}"
+  when: python2_urllib3_installed.stdout == "0"
+  pip:
+    name: urllib3
+    state: absent
+
+- name: install python-urllib3
+  yum:
+    name: python-urllib3
+    state: present
 
 # ansible docker module required(uninstall docker-py first)
 - name: install docker for python
   pip:
-    name: docker
+    name: "{{ item }}"
     state: present
+  with_items:
+    - docker
+    - docker-py

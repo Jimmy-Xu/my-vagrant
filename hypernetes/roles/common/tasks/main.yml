@@ -242,21 +242,6 @@
     dest: /etc/proxychains.conf
 
 ######################################################
-## install yum repo: centos-release-openstack-liberty
-# - name: download rdo-release.rpm
-#   environment: "{{ proxy_env }}"
-#   shell: |
-#     wget -c https://repos.fedorapeople.org/repos/openstack/EOL/openstack-liberty/rdo-release-liberty-5.noarch.rpm
-#   args:
-#     chdir: /root/deps
-
-- name: install yum repo for centos-release-openstack-liberty
-  environment: "{{ proxy_env }}"
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - centos-release-openstack-liberty
 
 ## install yum repo: ceph
 - name: add ceph yum repo

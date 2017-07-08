@@ -40,7 +40,20 @@ target:                                 active
 rabbitmq-server:                        active
 memcached:                              active
 == Keystone users ==
-Warning keystonerc not sourced
++----------------------------------+------------+
+| ID                               | Name       |
++----------------------------------+------------+
+| 11425a13b25c47df97b7fce31c4e2a7b | admin      |
+| 18cbb0d7d2be4eb3903f3023084ec90e | neutron    |
+| 397d8e1ca8b6418080a381913f4bde1d | cinder     |
+| badaa1529a634f2cb2bb43b3b34b88f6 | glance     |
+| e72d8c6ff47e412ba33cd10e8b1241ed | ceilometer |
++----------------------------------+------------+
+== Glance images ==
++----+------+
+| ID | Name |
++----+------+
++----+------+
 ```
 
 # runing service

@@ -106,7 +106,7 @@
     dest: /etc/kubernetes/cinder.conf
 
 - name: get rbd_key from /etc/ceph/ceph.client.cinder.keyring
-  shell: grep "key = " /etc/ceph/ceph.client.cinder.keyring  | cut -d" " -f3
+  shell: cat /etc/ceph/ceph.client.cinder.keyring  | grep 'key = ' | awk -F' = '  '{print $2}'
   register: rbd_key
 - debug: msg={{ rbd_key.stdout }}
 

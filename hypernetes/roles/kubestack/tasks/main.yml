@@ -11,13 +11,13 @@
   args:
     creates: "{{ go_path }}/src/github.com/hyperhq/kubestack"
 
-# install kubestack
+## install KubeStack
 - name: build and install kubestack
   shell: . $HOME/.bashrc && make && make install
   args:
     chdir: "{{ go_path }}/src/github.com/hyperhq/kubestack"
 
-# config kubestack
+## Configure KubeStack
 - name: get ext-net-id
   shell: . /root/keystonerc_admin && neutron net-list | grep 'br\-ex' | awk '{print $2}'
   register: ext_net_id
