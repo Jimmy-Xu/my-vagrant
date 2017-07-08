@@ -381,15 +381,17 @@
 #   register: devops_downloaded
 # - debug: msg={{ devops_downloaded.stdout }}
 #
-# - name: set deploy key for github
-#   copy:
-#     src: github/deploy.pem
-#     dest: /root/.ssh/deploy.pem
-# - file:
-#     path: /root/.ssh/deploy.pem
-#     owner: root
-#     group: root
-#     mode: 0400
+
+## for clone private repo
+- name: set deploy key for github
+  copy:
+    src: github/deploy.pem
+    dest: /root/.ssh/deploy.pem
+- file:
+    path: /root/.ssh/deploy.pem
+    owner: root
+    group: root
+    mode: 0400
 #
 # - git: repo=git@github.com:getdvm/devops.git dest=/root/devops version=master accept_hostkey=yes key_file=/root/.ssh/deploy.pem
 #   environment: "{{ proxy_env }}"
