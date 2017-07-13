@@ -1,0 +1,79 @@
+---
+# add ceph yum repo
+- name: copy ceph.repo
+  copy:
+    src: etc/yum.repos.d/ceph.repo
+    dest: /etc/yum.repos.d/ceph.repo
+
+# # install ceph-release.rpm
+# - name: copy ceph-release.rpm
+#   copy:
+#     src: rpm/ceph-release-1-1.el7.noarch.rpm
+#     dest: /root/deps/ceph-release.rpm
+# - name: install ceph-release.rpm
+#   yum:
+#     name: /root/deps/ceph-release.rpm
+#     state: present
+
+- name: install ceph-deploy
+  yum:
+    name: ceph-deploy
+    state: present
+
+
+- name: create dir /root/ceph-deploy
+  file:
+    path: /root/ceph-deploy
+    state: directory
+    mode: 0755
+
+- debug: msg={{ h8s_hostname }}
+
+# ceph-deploy new
+- name: run ceph-deploy new
+  shell: rm -rf /root/ceph-cluster && mkdir -p /root/ceph-cluster && cd /root/ceph-cluster && ceph-deploy new {{ h8s_hostname }} && echo "osd pool default size = 1" >> ceph.conf && touch /root/ceph-deploy/ceph-deploy-new.ok
+  args:
+    creates: /root/ceph-deploy/ceph-deploy-new.ok
+
+# ceph-deploy install
+- name: run ceph-deploy install
+  shell: rm -rf /etc/ceph /var/lib/ceph && mkdir -p /etc/ceph /var/lib/ceph && ceph-deploy install {{ h8s_hostname }} && touch /root/ceph-deploy/ceph-deploy-install.ok
+  args:
+    chdir: /root/ceph-cluster
+    creates: /root/ceph-deploy/ceph-deploy-install.ok
+
+# mon init
+- name: mon init
+  shell: ceph-deploy --overwrite-conf mon create-initial && touch /root/ceph-deploy/ceph-deploy-mon-init.ok
+  args:
+    chdir: /root/ceph-cluster
+    creates: /root/ceph-deploy/ceph-deploy-mon-init.ok
+
+- name: update mon_pg_warn_max_per_osd in ceph.conf
+  lineinfile:
+    dest: /etc/ceph/ceph.conf
+    regexp: '^mon_pg_warn_max_per_osd ='
+    line: mon_pg_warn_max_per_osd = {{ ceph_mon_pg_warn_max_per_osd }}
+    state: present
+    create: True
+    insertafter: '^[global]'
+
+- name: ensure owner of /var/lib/ceph/mon/ceph-h8s-single/store.db is ceph
+  file:
+    path: /var/lib/ceph/mon/ceph-h8s-single/store.db
+    owner: ceph
+    group: ceph
+
+# osd1
+- name: deploy osd1
+  shell: rm -rf /var/local/osd1 /var/lib/ceph/osd && mkdir -p /var/local/osd1 /var/lib/ceph/osd && ceph-deploy --overwrite-conf osd prepare {{ h8s_hostname }}:/var/local/osd1 &&  chown ceph:ceph /var/local/osd1 -R && ceph-deploy osd activate {{ h8s_hostname }}:/var/local/osd1  && touch /root/ceph-deploy/ceph-deploy-osd1.ok
+  args:
+    chdir: /root/ceph-cluster
+    creates: /root/ceph-deploy/ceph-deploy-osd1.ok
+
+# admin
+- name: deploy admin
+  shell: ceph-deploy admin {{ h8s_hostname }}  && touch /root/ceph-deploy/ceph-deploy-admin.ok
+  args:
+    chdir: /root/ceph-cluster
+    creates: /root/ceph-deploy/ceph-deploy-admin.ok

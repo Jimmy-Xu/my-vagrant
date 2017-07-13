@@ -1,0 +1,32 @@
+# virbr1 in host os
+virbr1_ip: 192.168.121.1
+bpf01_eth1_ip: 192.168.121.11
+bpf02_eth1_ip: 192.168.121.12
+bpf03_eth1_ip: 192.168.121.13
+bpf04_eth1_ip: 192.168.121.14
+
+# virbr0 in VM
+virbr0_ip:  192.168.222.1
+virbr0_range_start: 192.168.222.2
+virbr0_range_end: 192.168.222.254
+
+#docker0 in VM
+docker0_ip: 172.222.0.1
+
+#openstack - cinder
+config_cinder_db_pw: 4f85789aba4d4f89
+
+# kubernetes
+h8s_hostname: h8s-single
+keystone_admin_pw: aaa123aa
+keystone_demo_pw: aaa123aa
+rbd_secret_uuid: aaa123aa
+
+#for user os_network module(avoid 'shade is required for this module')
+ansible_python_interpreter: "/bin/env python"
+
+# golang
+go_install_dir: /usr/local
+go_root: /usr/local/go
+go_path: /root/gopath
+go_version: 1.7.6

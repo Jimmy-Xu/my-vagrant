@@ -1,0 +1,90 @@
+---
+
+#generate h8s_deploy_env
+- name: generate deploy config file
+  template:
+    src: h8s_deploy_env
+    dest: /root/h8s_deploy_env
+  tags:
+   - generate-h8s_deploy_env
+
+#generate /etc/hosts
+- name: generate /etc/hosts
+  template:
+    src: etc/hosts
+    dest: /etc/hosts
+  tags:
+    - generate-etc_hosts
+
+#install common package
+- name: install common package
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ntp
+    - vim
+    - screen
+    - iptables
+    - openssh-server
+
+#start ntpd
+- name: start ntpd service
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+
+#start sshd
+- name: start sshd service
+  service:
+    name: sshd
+    state: started
+    enabled: yes
+
+#disable firewalld
+- name: disalbe firewalld service
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+#check iptables
+- name: check iptables
+  shell: iptables -F && iptables -X
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+#generate sysctl.conf
+- name: generate /etc/sysctl.conf
+  copy:
+    src: etc/sysctl.conf
+    dest: /etc/sysctl.conf
+  tags:
+    - generate-etc_sysctl_conf
+- name: load bridge module
+  command: modprobe bridge
+- name: load br_netfilter module
+  command: modprobe br_netfilter
+- name: check sysctl
+  command: sysctl -p
+
+#generate limits.conf
+- name: generate limits.conf
+  copy:
+    src: etc/security/limits.conf
+    dest: /etc/security/limits.conf
+  tags:
+    - generate-etc_security_limits_conf
+
+#copy test_h8s.sh
+- name: copy test_h8s.sh
+  template:
+    src: test_h8s.sh
+    dest: /root/test_h8s.sh
+- file:
+    path: /root/test_h8s.sh
+    mode: 0755

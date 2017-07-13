@@ -1,0 +1,136 @@
+---
+- name: check old installer for openstack
+  shell: |
+      (ps -ef | grep  "puppet.*packstack" | grep -v grep) && exit 1 || echo OK ;
+
+- file:
+    path: /root/deps
+    state: directory
+    mode: 0755
+
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/3/html/Getting_Started_Guide/appe-Getting_Started_Guide-Removing_PackStack_Deployments.html
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/6/html/Deploying_OpenStack_Proof_of_Concept_Environments/chap-Removing_Packstack_Deployments.html
+- name: copy uninstall script
+  copy: src={{ item }} dest=/root/ mode="0755"
+  with_fileglob:
+    - tools/*
+
+#####################################################
+## install yum repo: centos-release-openstack-liberty
+# - name: download rdo-release.rpm
+#   environment: "{{ proxy_env }}"
+#   shell: |
+#     wget -c https://repos.fedorapeople.org/repos/openstack/EOL/openstack-liberty/rdo-release-liberty-5.noarch.rpm
+#   args:
+#     chdir: /root/deps
+
+# install centos-release-openstack-liberty
+- name: install yum repo for centos-release-openstack-liberty
+  environment: "{{ proxy_env }}"
+  yum:
+    name: centos-release-openstack-liberty
+    state: present
+
+# install packstack
+- name: install openstack-packstack
+  environment: "{{ proxy_env }}"
+  yum:
+    name: openstack-packstack
+    state: present
+- name: check packstack version
+  shell: packstack --version | awk '{print $1, $2}'
+  register: packstack_version
+- debug:
+    msg: "{{ packstack_version.stdout }}"
+- fail:
+    msg: "packstack version should be 'Liberty'"
+  when: packstack_version.stdout != "packstack Liberty"
+
+# install python support for redis(or yum install python-redis)
+- name: install redis for python
+  pip:
+    name: redis
+
+#install oslo.i18n(fix "ImportError: cannot import name _lazy")
+- name: install oslo.i18n
+  pip:
+    name: oslo.i18n
+    version: 3.4.0
+
+# install memcached service and patch systemd config for memcached
+- name: install memcached
+  yum:
+    name: memcached
+    state: present
+- name: patch /usr/lib/systemd/system/memcached.service
+  shell: grep "#MemoryDenyWriteExecute=" /usr/lib/systemd/system/memcached.service ||(sed -i 's/^MemoryDenyWriteExecute=/#MemoryDenyWriteExecute=/' /usr/lib/systemd/system/memcached.service; systemctl daemon-reload; systemctl restart memcached)
+
+- name: install sshpass
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - sshpass
+
+###### run install openstack ######
+# Editing a PackStack Answer File: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/4/html/Getting_Started_Guide/Editing_a_PackStack_Answer_File.html
+# ensure "mariadb-server" isn't installed before start packstack
+# log :/var/tmp/packstack/latest/openstack-setup.log
+###################################
+#generate answer.txt
+- name: generate answer.txt
+  template:
+    src: answer.txt
+    dest: /root/deps/answer.txt
+- name: run packstack if '/root/deps/packstack.ok' not exist
+  environment: "{{ proxy_env }}"
+  shell: |
+    echo "===========================";
+    env;
+    echo "===========================";
+    cp /root/deps/answer.txt /root/deps/answer.txt.orig
+    echo "===========================";
+    packstack --answer-file=/root/deps/answer.txt && touch /root/deps/packstack.ok
+  args:
+    chdir: /root
+    creates: /root/deps/packstack.ok
+
+
+- name: patch /usr/lib/systemd/system/neutron-server.service
+  shell: grep 'TimeoutStartSec="infinity"' /usr/lib/systemd/system/neutron-server.service && (sed -i 's/^TimeoutStartSec="infinity"/TimeoutStartSec=0/' /usr/lib/systemd/system/neutron-server.service; systemctl daemon-reload; systemctl restart neutron-server) || echo neutron-server.service was patched
+
+
+## Create external network
+- name: add -x filemode to /root/keystonerc_admin
+  file:
+    path: /root/keystonerc_admin
+    mode: 0700
+- name: check ext_network
+  shell: . /root/keystonerc_admin && neutron net-list | grep 'br\-ex' | wc -l
+  register: ext_network
+- debug: msg={{ ext_network.stdout }}
+
+- name: create ext_network
+  shell: . /root/keystonerc_admin && neutron net-create --router:external br-ex
+  when: ext_network.stdout == "0"
+
+## Configure neutron-server
+- name: config neutron-server
+  copy:
+    src: etc/neutron.conf
+    dest: /etc/neutron.conf
+
+## install openstack-neutron-openvswitch
+- name: install openstack-neutron-openvswitch
+  environment: "{{ proxy_env }}"
+  yum:
+    name: openstack-neutron-openvswitch
+    state: present
+- name: start openvswitch service
+  service:
+    name: openvswitch
+    state: started
+    enabled: yes
+- name: check openstack status
+  shell: openstack-status

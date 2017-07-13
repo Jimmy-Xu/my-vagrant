@@ -1,0 +1,31 @@
+---
+#REF: https://github.com/getdvm/devops/blob/master/zenlayer-2-deploy/80_apirouter_deploy
+
+- name: ensure dir $GOPATH/src/github.com/hyperhq
+  file:
+    name: "{{ go_path }}/src/github.com/hyperhq"
+    state: directory
+    mode: 0755
+
+- name: clone apirouter
+  environment: "{{ proxy_env }}"
+  git:
+    repo: git@github.com:getdvm/hyper-api-router.git
+    dest: "{{ go_path }}/src/github.com/hyperhq/hyper-api-router"
+    version: master
+    accept_hostkey: yes
+    key_file: /root/.ssh/deploy.pem
+
+- name: build apirouter
+  shell: |
+    . $HOME/.bashrc
+    ./autogen.sh
+    ./configure
+    make
+  args:
+    chdir: "{{ go_path }}/src/github.com/hyperhq/hyper-api-router"
+
+- name: check apirouter version
+  shell: ./apirouter --version
+  args:
+    chdir: "{{ go_path }}/src/github.com/hyperhq/hyper-api-router"

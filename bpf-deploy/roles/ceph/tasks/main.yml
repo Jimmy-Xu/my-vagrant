@@ -1,0 +1,81 @@
+---
+###### install ceph client ######
+- name: install ceph client
+  environment: "{{ proxy_env }}"
+  yum:
+    name: ceph-common
+    state: present
+    enablerepo: ceph
+
+- name: add reset tool for ceph
+  copy:
+    src: tools/reset-ceph.sh
+    dest: /root/reset-ceph.sh
+    mode: "0755"
+
+# pull ceph image
+- name: check ceph image 'ceph/demo:tag-build-master-jewel-ubuntu-16.04'
+  shell: docker images | grep 'ceph.*demo.*jewel' | wc -l
+  register: ceph_image
+- debug: msg={{ ceph_image.stdout }}
+- name: pull image ceph/demo:tag-build-master-jewel-ubuntu-16.04
+  docker_image:
+    name: ceph/demo:tag-build-master-jewel-ubuntu-16.04
+  when: ceph_image.stdout != "1"
+
+###### start ceph server in container ######
+- name: clone learn-ceph repo
+  git: repo=http://github.com/Jimmy-Xu/learn-ceph.git dest=/home/vagrant/learn-ceph version=master force=yes
+  environment: "{{ proxy_env }}"
+- name: copy Dockerfile
+  copy: src=docker/Dockerfile dest=/home/vagrant/learn-ceph/Dockerfile
+
+- name: build xjimmyshcn/ceph image
+  docker_image:
+    path: "/home/vagrant/learn-ceph/"
+    name: "xjimmyshcn/ceph"
+    state: present
+    buildargs:
+      http_proxy: http://{{ virbr1_ip }}:8118
+      https_proxy: http://{{ virbr1_ip }}:8118
+
+# if container ceph-demo's status is alwyas 'Restarting', then check the 'public network' and 'cluster network' in /etc/ceph.conf
+- name: get the network prefix
+  shell: ip route | grep "eth1.*src" | grep -v default | awk '{print $1}'
+  register: network_prefix
+- debug: msg={{ network_prefix.stdout }}
+- name: start ceph container
+  docker:
+    name: ceph-demo
+    image: xjimmyshcn/ceph
+    state: started
+    net: host
+    privileged: yes
+    restart_policy: always
+    volumes:
+      - /etc/ceph:/etc/ceph
+      - /mnt/vdc/var/log/ceph:/var/log/ceph
+      - /mnt/vdc/var/lib/ceph:/var/lib/ceph
+      - /dev:/dev
+      - /sys:/sys
+    env:
+      MON_IP: "{{ ansible_eth1.ipv4.address }}"
+      CEPH_NETWORK: "{{ network_prefix.stdout }}"
+
+#modify ceph.conf (fix: https://github.com/ceph/ceph-cookbook/issues/187)
+# mon_pg_warn_max_per_osd: fix warn "too many PGs per OSD"
+- name: update ceph.conf for ext4
+  shell: |
+    grep osd_max_object_name_len /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_name_len = 256' /etc/ceph/ceph.conf
+    grep osd_max_object_namespace_len  /etc/ceph/ceph.conf || sed -i '/\[global\]/a\osd_max_object_namespace_len  = 64' /etc/ceph/ceph.conf
+    grep mon_pg_warn_max_per_osd /etc/ceph/ceph.conf || sed -i '/\[global\]/a\mon_pg_warn_max_per_osd = 1000' /etc/ceph/ceph.conf
+    docker restart ceph-demo
+
+#create ceph pool 'hyper'
+- name: check pool
+  shell: ceph osd pool ls | grep hyper | wc -l
+  register: hyper_pool
+- debug: msg={{ hyper_pool.stdout }}
+- name: create ceph pool 'hyper'
+  shell: ceph osd pool create hyper 64
+  when: hyper_pool.stdout == "0"

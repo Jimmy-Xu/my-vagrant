@@ -1,0 +1,7 @@
+# for image service
+StorageDriver=rbd
+DisableIptables=true
+ContainerDB=127.0.0.1
+IMAGED_OPTS="--host=tcp://0.0.0.0:2377"
+http_proxy="http://127.0.0.1:8118"
+https_proxy="http://127.0.0.1:8118"

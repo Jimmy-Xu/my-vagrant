@@ -1,0 +1,75 @@
+---
+
+# prepare golang env
+- name: include go.yml
+  include: go.yml
+
+# get kubestack source code
+- name: go get kubestack
+  environment: "{{ proxy_env }}"
+  shell: . $HOME/.bashrc && go get github.com/hyperhq/kubestack
+  args:
+    creates: "{{ go_path }}/src/github.com/hyperhq/kubestack"
+
+## install KubeStack
+- name: build and install kubestack
+  shell: . $HOME/.bashrc && make && make install
+  args:
+    chdir: "{{ go_path }}/src/github.com/hyperhq/kubestack"
+
+## Configure KubeStack
+- name: get ext-net-id
+  shell: . /root/keystonerc_admin && neutron net-list | grep 'br\-ex' | awk '{print $2}'
+  register: ext_net_id
+- debug: msg={{ ext_net_id }}
+- name: config kubestack
+  template:
+    src: etc/kubestack.conf
+    dest: /etc/kubestack.conf
+
+# old
+# - name: update ext-net-id
+#   shell: sed -i "s/ext-net-id = /ext-net-id = {{ ext_net_id.stdout }} /g" /etc/kubestack.conf
+#   when: ext_net_id.stdout != ""
+# new
+- name: update ext-net-id
+  lineinfile:
+    dest: /etc/kubestack.conf
+    regexp: '^ext-net-id ='
+    line: ext-net-id = {{ ext_net_id.stdout }}
+    state: present
+    create: True
+    insertafter: '^[Global]'
+
+# config kubestack service
+- name: config kubestack service
+  copy:
+    src: usr/lib/systemd/system/kubestack.service
+    dest: /usr/lib/systemd/system/kubestack.service
+  notify:
+    - reload-systemd
+    - restart-kubestack
+
+# ensure dir
+- name: create dir /var/log/kubestack
+  file:
+    path: /var/log/kubestack
+    state: directory
+
+# ensure kube user and group
+- name: create kube group
+  group:
+    name: kube
+    state: present
+- name: create kube user
+  user:
+    name: kube
+    group: kube
+    state: present
+
+# start kubestack service
+- name: start kubestack.service
+  service:
+    name: kubestack
+    state: started
+    enabled: yes

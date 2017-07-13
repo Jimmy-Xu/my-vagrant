@@ -1,0 +1,25 @@
+[Unit]
+Description=Hyper api router
+After=syslog.target network.target
+Requires=
+
+[Service]
+ExecStart=/usr/local/bin/apirouter \\
+  --insecure-bind-address=0.0.0.0 \\
+  --trust-sources=10.0.0.0/8 \\
+  --logtostderr=false \\
+  --log-dir=/var/log/apirouter \\
+  --mongodb-url=10.2.1.1,10.2.1.2 \\
+  --monitor-mongo=us-west-1.cell-02:10.2.1.1 \\
+  --max-requests-inflight=20000 \\
+  --lb-image=hyperhq/service-loadbalancer \\
+  --external-endpoint=tcp://us-west-1.hyper.sh:443 \\
+  --kafka-address=zl2-03:9092,zl2-06:9092,zl2-09:9092 \\
+  --etcd-addresses==http://10.2.1.8:2379,http://10.2.1.9:2379,http://10.2.1.10:2379 \\
+  -v=3
+LimitNOFILE=4096
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF

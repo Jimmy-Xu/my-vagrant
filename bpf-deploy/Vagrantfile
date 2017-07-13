@@ -1,0 +1,84 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+##############################
+# Add timestamp to debug log
+##############################
+$out_file = File.new('debug.log', 'w')
+def $stdout.write string
+    log_datas=string
+    if log_datas.gsub(/\r?\n/, "") != ''
+        log_datas=::Time.now.strftime("%d/%m/%Y %T")+" "+log_datas.gsub(/\r\n/, "\n")
+    end
+    super log_datas
+    $out_file.write log_datas
+    $out_file.flush
+end
+def $stderr.write string
+    log_datas=string
+    if log_datas.gsub(/\r?\n/, "") != ''
+        log_datas=::Time.now.strftime("%d/%m/%Y %T")+" "+log_datas.gsub(/\r\n/, "\n")
+    end
+    super log_datas
+    $out_file.write log_datas
+    $out_file.flush
+end
+
+require 'yaml'
+VAGRANTFILE_API_VERSION = '2'
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  (1..2).each do |i|
+
+    config.vm.define "bpf0#{i}" do |node|
+
+      node.vm.box = "centos/7"
+      node.vm.hostname = "bpf0#{i}"
+      node.vm.post_up_message = "========== [ bpf0#{i} ] Started up! =========="
+
+      eth1_ip = "192.168.121.1#{i}"
+      node.vm.network "private_network", ip: eth1_ip, :bridge => 'virbr1'
+
+      # REF: https://www.vagrantup.com/docs/vagrantfile/ssh_settings.html
+      node.ssh.port = 22
+      node.ssh.keep_alive = true
+
+      # config node.ssh.host
+      node.vm.networks.each do |type, options|
+        if type == :private_network
+          puts "==network_type==: #{type} #{options}"
+          check_ip = %Q(ping -c3 -W1 #{eth1_ip})
+          output = `#{check_ip}`
+          if $?.to_i == 0
+            node.ssh.host = eth1_ip
+            puts "== node.ssh.host == : (use eth1 - static ip)", node.ssh.host
+          else
+            puts "== node.ssh.host == : (use eth0 - dhcp)"
+          end
+        end
+      end
+
+      # Libvirt
+      node.vm.provider :libvirt do |lv|
+        lv.memory = 2048
+        lv.cpus = 1
+        lv.nested = true
+        lv.graphics_ip = '0.0.0.0'
+        lv.nic_model_type = "virtio"
+        lv.storage_pool_name = "bpf"
+        lv.storage :file, :device => "sdb", :path => "bpf0#{i}_sdb.disk", :size => '40G', :bus => "virtio"
+      end
+    end
+  end
+
+  # global ansible config
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "site.yml"
+    ansible.verbose = "v"
+  end
+end

@@ -1,0 +1,10 @@
+DEVICE="eth1"
+BOOTPROTO="static"
+TYPE="Ethernet"
+ONBOOT="yes"
+DEFROUTE="yes"
+IPADDR={{ eth1_ip }}
+PREFIX=24
+GATEWAY={{ virbr1_ip }}
+DNS1={{ virbr1_ip }}
+DNS2=114.114.114.114

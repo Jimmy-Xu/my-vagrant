@@ -1,0 +1,8 @@
+_image/
+_tmp/
+ansible/
+.vagrant
+roles/common/files/github/deploy.pem
+roles/common/vars/main.yml
+site.retry
+*.log

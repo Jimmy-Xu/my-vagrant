@@ -1,0 +1,286 @@
+---
+## show env
+- debug: msg="{{ proxy_env }}"
+
+## patch for ssh
+- name: solve ssh slow
+  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
+  register: ssh_config
+- name: restart sshd if sshd_config has changed
+  when: ssh_config.changed
+  service:
+    name: sshd
+    state: restarted
+    enabled: true
+
+## ssh client config
+- name: ensure .ssh dir
+  shell: mkdir -p /root/.ssh /home/vagrant/.ssh
+- name: ssh client config
+  copy: src=ssh/config dest=/root/.ssh/config
+- name: ssh client config
+  copy: src=ssh/config dest=/home/vagrant/.ssh/config
+
+## patch for dhcp
+- name: solve ip lost after dhcp timeout
+  shell: (ps -ef | grep dhclient | grep -v grep) && echo 'dhclient is running' || dhclient eth0
+- name: dhclient crontjob
+  cron:
+    minute: "*/20"
+    user: root
+    job: "/bin/bash -c '(ps -ef | grep dhclient | grep -v grep) && echo dhclient is running || /sbin/dhclient eth0'"
+    cron_file: ansible_dhclient-autorenew
+
+#disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+- lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+
+
+## for openstack
+- name: Disable NetworkManager & firewalld Service
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  with_items:
+    - NetworkManager
+    - firewalld
+- name: Enable network
+  service:
+    name: network
+    state: started
+    enabled: true
+
+#######################################
+
+# append dns server 114.114.114.114
+- name: create /etc/resolv.conf.d dir
+  file:
+    path: /etc/resolv.conf.d
+    state: directory
+- name: config dns
+  copy:
+    src: etc/resolv.conf.d/base
+    dest: /etc/resolv.conf.d/base
+- name: append dns to resolv.conf
+  shell: grep 'nameserver 114.114.114.114' /etc/resolv.conf || echo 'nameserver 114.114.114.114' >> /etc/resolv.conf
+
+# patch /var/log/message flooded with systemd messages
+- name: config for rsyslog
+  copy:
+    src: etc/rsyslog.d/ignore-systemd-session-slice.conf
+    dest: /etc/rsyslog.d/ignore-systemd-session-slice.conf
+  notify:
+    - restart-rsyslog
+
+- name: ensure dir /root/deps
+  file: path=/root/deps state=directory mode=0755
+
+##########################################
+- name: config yum
+  template:
+    src: etc/yum.conf
+    dest: /etc/yum.conf
+- name: fix yum pending transactions
+  shell: |
+    yum-complete-transaction --cleanup-only
+    yum history redo last -y
+
+## install yum repo: epel
+- name: install yum repo for epel-release
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - epel-release
+
+- name: update the repo to use HTTP rather than HTTPS
+  shell: |
+    sed -i "s/=https/=http/" /etc/yum.repos.d/epel.repo
+    sed -i "s/^#baseurl=/baseurl=/" /etc/yum.repos.d/epel.repo
+    sed -i "s/^mirrorlist=/#mirrorlist=/" /etc/yum.repos.d/epel.repo
+
+- name: create /etc/yum.repos.d/bak dir
+  file:
+    path: /etc/yum.repos.d/bak
+    state: directory
+- name: move epel-testing.repo to /etc/yum.repos.d/bak
+  shell: mv epel-testing.repo bak/epel-testing.repo && mv CentOS-{Debuginfo,Sources}.repo bak/
+  args:
+    chdir: /etc/yum.repos.d/
+    creates: /etc/yum.repos.d/bak/epel-testing.repo
+
+- name: install pip
+  environment: "{{ proxy_env }}"
+  yum:
+    name: python-pip
+    state: present
+- name: upgrade pip
+  shell: pip install --upgrade pip && touch /root/pip.upgraded
+  args:
+    creates: /root/pip.upgraded
+
+
+## install basick package
+- name: install basic package
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - wget
+    - git
+    - gcc
+    - automake
+    - autoconf
+    - screen
+    - multitail
+    - xterm
+    - yum-plugin-priorities
+    - yum-utils
+
+- name: download proxychains-ng
+  environment: "{{ proxy_env }}"
+  shell: |
+    wget -c http://springdale.math.ias.edu/data/puias/unsupported/7/x86_64/proxychains-ng-4.11-1.sdl7.x86_64.rpm
+    rpm -ivh proxychains-ng-4.11-1.sdl7.x86_64.rpm
+  args:
+    chdir: /root/
+    creates: /bin/proxychains4
+- name: config proxychains-ng
+  copy:
+    src: etc/proxychains.conf
+    dest: /etc/proxychains.conf
+
+######################################################
+
+## install yum repo: ceph
+- name: add ceph yum repo
+  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
+
+## install yum repo: docker
+- name: add docker yum repo
+  copy: src=etc/yum.repos.d/docker-main.repo dest=/etc/yum.repos.d/docker-main.repo
+
+######################################################
+##### mount disk #####
+- name: create a xfs filesystem on /dev/vdb
+  filesystem:
+    fstype: xfs
+    dev: "{{ item }}"
+  with_items:
+    - /dev/vdb
+
+- name: ensure mount point /mnt/vdb
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /mnt/vdb
+
+- name: mount device(/dev/vdb)
+  mount:
+    path: /mnt/vdb
+    src: /dev/vdb
+    fstype: xfs
+    state: mounted # add to /etc/fstab + mount
+
+### install common package ###
+- name: install common package
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - net-tools
+    - tree
+    - psmisc
+
+## install libvirt
+- name: install libvirt package
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libvirt
+
+- name: copy script for virbr0
+  copy: src={{ item }} dest=/root/ mode="0755"
+  with_fileglob:
+    - tools/*
+
+# delete default virbr0 (192.168.121.1)
+- name: delete default virbr0
+  shell: /root/destroy-default-virbr0.sh
+
+# config libvirt
+- name: copy libvirt config
+  template:
+    src: etc/libvirt/qemu/networks/default.xml
+    dest: /etc/libvirt/qemu/networks/default.xml
+  notify:
+    - restart-libvirtd
+
+# start libvirtd service
+- name: start libvirtd service
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+## install iptables
+- name: install iptables package
+  environment: "{{ proxy_env }}"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - iptables
+    - iptables-services
+
+- name: start iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: true
+
+#check iptables
+- name: check iptables
+  shell: iptables -F && iptables -X
+
+###### init ######
+- name: generate h8s_deploy_env
+  shell: echo -e "HOSTNAME='h8s-single'\nIF_NAME='eth1'\nIF_IP='{{ ansible_eth1.ipv4.address }}'\nKEYSTONE_ADMIN_PW='$(uuidgen)'\nKEYSTONE_DEMO_PW='$(uuidgen)'\nRBD_SECRET_UUID='$(uuidgen)'" > /root/h8s_deploy_env
+  args:
+    creates: /root/h8s_deploy_env
+
+## for clone private repo
+- name: set deploy key for github
+  copy:
+    src: github/deploy.pem
+    dest: /root/.ssh/deploy.pem
+- file:
+    path: /root/.ssh/deploy.pem
+    owner: root
+    group: root
+    mode: 0400
+
+## config /etc/hosts
+- name: update /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ item.ip }} {{ item.hostname }}"
+    state: present
+  with_items:
+    - { ip: "{{ bpf01_eth1_ip }}", hostname: "bpf01" }
+    - { ip: "{{ bpf02_eth1_ip }}", hostname: "bpf02" }
+    - { ip: "{{ bpf03_eth1_ip }}", hostname: "bpf03" }
+    - { ip: "{{ bpf04_eth1_ip }}", hostname: "bpf04" }

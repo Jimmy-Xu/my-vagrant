@@ -1,0 +1,16 @@
+[Unit]
+Description=hyperd
+Documentation=http://docs.hyper.sh
+After=network.target
+Requires=
+
+[Service]
+EnvironmentFile=-/etc/hyper/config
+ExecStart=/usr/bin/hyperd --nondaemon --log_dir=/var/log/hyper --host=tcp://{{ansible_eth1.ipv4.address}}:{{ hyper_port }}
+MountFlags=shared
+LimitNOFILE=1048576
+LimitNPROC=1048576
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target
