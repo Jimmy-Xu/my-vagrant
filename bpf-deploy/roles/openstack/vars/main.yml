@@ -1,10 +1,21 @@
-config_nova_network_pubif: eth0
+config_controller_host: "{{ bpf01_eth1_ip }}"
+config_network_hosts: "{{ bpf01_eth1_ip }}"
+
+config_nova_network_pubif: eth1
+
 config_nova_network_privif: eth1
+config_neutron_ovs_tunnel_if: eth1
+
+config_keystone_region: test.bpf.cell-01
+
+
 config_provision_demo: n
 config_swift_install: n
-config_neutron_metering_agent_install: y
 config_nagios_install: n
 config_lbaas_install: y
 config_neutron_fwaas: y
 config_nova_install: n
-config_service_worker: 1
+config_ceilometer_install: n
+config_glance_install: n
+config_horizon_install: n
+config_lbaas_install: n

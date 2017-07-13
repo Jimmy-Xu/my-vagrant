@@ -389,7 +389,8 @@ sleep 3
       ;;
   esac
 
-  VAGRANT_LOG=info vagrant up --provision --provider=${PROVIDER}
+  # --no-parallel for multiple vm
+  VAGRANT_LOG=info vagrant up --provision --no-parallel --provider=${PROVIDER}
 }
 
 function destroy_all(){

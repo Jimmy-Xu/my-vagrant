@@ -24,3 +24,17 @@
     # - kafka
     # - apirouter
     # - imaged
+
+- hosts: bpf01
+  become: true
+  become_user: root
+  vars:
+    proxy_env:
+      http_proxy: "http://{{ virbr1_ip }}:8118"
+      https_proxy: "http://{{ virbr1_ip }}:8118"
+      no_proxy: "localhost,127.0.0.1,/var/run/docker.sock,.edu.cn,mirrors.163.com,{{ ansible_eth0.ipv4.address }},{{ ansible_eth1.ipv4.address }},{{ h8s_hostname }}"
+      HTTP_PROXY: "http://{{ virbr1_ip }}:8118"
+      HTTPS_PROXY: "http://{{ virbr1_ip }}:8118"
+      NO_PROXY: "localhost,127.0.0.1,/var/run/docker.sock,.edu.cn,mirrors.163.com,{{ ansible_eth0.ipv4.address }},{{ ansible_eth1.ipv4.address }},{{ h8s_hostname }}"
+  roles:
+    - openstack
