@@ -18,3 +18,5 @@ imaged/site.yml
 imaged/roles/common/vars/main.yml
 
 libvirt/.vagrant
+
+kubernetes/.vagrant
