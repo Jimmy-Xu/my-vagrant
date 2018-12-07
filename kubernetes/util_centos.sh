@@ -9,7 +9,7 @@
 #    - vagrant-proxyconf (1.5.2)
 # ----libvirt------
 #  - qemu(2.4.1), libvirt-bin(3.9.0)
-#  - ruby 2.2.5
+#  - ruby 2.5.1
 #  - ruby-libvirt 0.7.1
 # ----virtualbox------
 #  - virtualbox 5.2.22
@@ -44,7 +44,7 @@ VAGRANT_URL="https://releases.hashicorp.com/vagrant/2.2.2/${VAGRANT_PKG}"
 VIRTUALBOX_PKG="VirtualBox-5.2-5.2.22_126460_el7-1.x86_64.rpm "
 VIRTUALBOX_URL="http://download.virtualbox.org/virtualbox/5.2.22/${VIRTUALBOX_PKG}"
 
-RUBY_VER=2.2.5
+RUBY_VER=2.5.1
 RUBY_LIBVIRT=0.7.1
 
 ##################################
@@ -183,11 +183,33 @@ function ensure_dependency(){
     fi
 
     echo "----------------------------------------"
-    echo "install rvm"
+    if [ -s ~/.rvm/scripts/rvm ];then
+      source ~/.rvm/scripts/rvm
+    fi
     which rvm >/dev/null 2>&1
     if [ $? -ne 0 ];then
-      curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-      curl -L get.rvm.io | bash -s stable
+      echo "install rvm"
+      sudo yum install -y ca-certificates
+      sudo update-ca-trust
+      sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+      curl -kL get.rvm.io | sudo bash -s stable --ruby=$RUBY_VER
+    else
+      echo "[for libvirt] rvm was installed"
+      rvm --version
+    fi
+
+    #patch: fix __rvm_cleanse_variables: function definition file not found
+    echo "----------------------------------------"
+    echo "patch for rvm and zsh"
+    if [ -f $HOME/.zgen/zcompdump ]; then
+      rm -rf $HOME/.zgen/zcompdump
+    fi
+    ls ~/.zcomp* >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      rm -rf $HOME/.zcomp*
+    fi
+    if [ -f $HOME/.zlogin ]; then
+      rm -rf $HOME/.zlogin
     fi
 
     echo "----------------------------------------"
@@ -206,16 +228,12 @@ function ensure_dependency(){
     rvm requirements run
 
     ruby --version | grep "ruby ${RUBY_VER}" >/dev/null 2>&1
-    if [ $? -ne 0 ];then
-      sudo yum install -y ruby-devel rubygems
-      sudo rvm install ${RUBY_VER} --disable-binary
-      sudo rvm use ${RUBY_VER} --default
-
+    if [ $? -ne 0 ]; then
+      echo "[for libvirt] install ruby $RUBY_VER now"
+      rvm install $RUBY_VER
       ruby --version | grep "ruby ${RUBY_VER}" >/dev/null 2>&1
-      if [ $? -ne 0 ];then
-        quit "[for libvirt] install ruby ${RUBY_VER} failed"
-      else
-        echo "[for libvirt] ruby ${RUBY_VER} install successfully"
+      if [ $? -ne 0 ]; then
+        quit "[for libvirt] failed to install ruby ${RUBY_VER}"
       fi
     else
       ruby --version
